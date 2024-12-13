@@ -1,0 +1,111 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{DF12F12E-6793-495B-B858-97268065910A}|TaskManagementApp\\TaskManagementApp.csproj|d:\\document for uni\\year 4\\advance web dev\\taskmanagementapp\\taskmanagementapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DF12F12E-6793-495B-B858-97268065910A}|TaskManagementApp\\TaskManagementApp.csproj|solutionrelative:taskmanagementapp\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DF12F12E-6793-495B-B858-97268065910A}|TaskManagementApp\\TaskManagementApp.csproj|d:\\document for uni\\year 4\\advance web dev\\taskmanagementapp\\taskmanagementapp\\startup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DF12F12E-6793-495B-B858-97268065910A}|TaskManagementApp\\TaskManagementApp.csproj|solutionrelative:taskmanagementapp\\startup.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DF12F12E-6793-495B-B858-97268065910A}|TaskManagementApp\\TaskManagementApp.csproj|d:\\document for uni\\year 4\\advance web dev\\taskmanagementapp\\taskmanagementapp\\services\\firestoreservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DF12F12E-6793-495B-B858-97268065910A}|TaskManagementApp\\TaskManagementApp.csproj|solutionrelative:taskmanagementapp\\services\\firestoreservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DF12F12E-6793-495B-B858-97268065910A}|TaskManagementApp\\TaskManagementApp.csproj|d:\\document for uni\\year 4\\advance web dev\\taskmanagementapp\\taskmanagementapp\\configs\\serviceaccountkey.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{DF12F12E-6793-495B-B858-97268065910A}|TaskManagementApp\\TaskManagementApp.csproj|solutionrelative:taskmanagementapp\\configs\\serviceaccountkey.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\Models\\Task.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:TaskManagementApp\\Models\\Task.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Startup.cs",
+              "DocumentMoniker": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\Startup.cs",
+              "RelativeDocumentMoniker": "TaskManagementApp\\Startup.cs",
+              "ToolTip": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\Startup.cs",
+              "RelativeToolTip": "TaskManagementApp\\Startup.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAkwBwAAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-12T15:12:20.026Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "serviceAccountKey.json",
+              "DocumentMoniker": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\Configs\\serviceAccountKey.json",
+              "RelativeDocumentMoniker": "TaskManagementApp\\Configs\\serviceAccountKey.json",
+              "ToolTip": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\Configs\\serviceAccountKey.json",
+              "RelativeToolTip": "TaskManagementApp\\Configs\\serviceAccountKey.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2024-12-12T15:17:10.918Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Task.cs",
+              "DocumentMoniker": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\Models\\Task.cs",
+              "RelativeDocumentMoniker": "TaskManagementApp\\Models\\Task.cs",
+              "ToolTip": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\Models\\Task.cs",
+              "RelativeToolTip": "TaskManagementApp\\Models\\Task.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-12T15:19:38.288Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "FirestoreService.cs",
+              "DocumentMoniker": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\Services\\FirestoreService.cs",
+              "RelativeDocumentMoniker": "TaskManagementApp\\Services\\FirestoreService.cs",
+              "ToolTip": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\Services\\FirestoreService.cs",
+              "RelativeToolTip": "TaskManagementApp\\Services\\FirestoreService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-12T15:13:05.867Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\Program.cs",
+              "RelativeDocumentMoniker": "TaskManagementApp\\Program.cs",
+              "ToolTip": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\Program.cs",
+              "RelativeToolTip": "TaskManagementApp\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-12-12T15:12:18.992Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
