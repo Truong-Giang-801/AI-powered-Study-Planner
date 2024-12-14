@@ -36,11 +36,17 @@ namespace TaskManagementApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateTask(TaskModel taskmodel)
+        public async Task<IActionResult> CreateTask([FromBody] TaskModel taskmodel)
         {
             if (taskmodel == null)
             {
                 return BadRequest("Task cannot be null");
+            }
+
+            // Validate that status is a valid enum value
+            if (!Enum.IsDefined(typeof(TaskManagementApp.Models.TaskStatus), taskmodel.Status))
+            {
+                return BadRequest("Invalid status value.");
             }
 
             try
@@ -54,6 +60,7 @@ namespace TaskManagementApp.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTask(string id)

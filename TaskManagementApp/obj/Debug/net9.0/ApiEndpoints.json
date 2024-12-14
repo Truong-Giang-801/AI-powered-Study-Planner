@@ -32,17 +32,28 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TasksController",
+    "ContainingType": "TaskManagementApp.Controllers.TasksController",
     "Method": "GetTasks",
     "RelativePath": "api/Tasks",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageNumber",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TasksController",
+    "ContainingType": "TaskManagementApp.Controllers.TasksController",
     "Method": "CreateTask",
     "RelativePath": "api/Tasks",
     "HttpMethod": "POST",
@@ -50,15 +61,15 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "task",
-        "Type": "TaskManagementApp.Models.Task",
+        "Name": "taskmodel",
+        "Type": "TaskManagementApp.Models.TaskModel",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TasksController",
+    "ContainingType": "TaskManagementApp.Controllers.TasksController",
     "Method": "GetTask",
     "RelativePath": "api/Tasks/{id}",
     "HttpMethod": "GET",
@@ -74,7 +85,7 @@
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TasksController",
+    "ContainingType": "TaskManagementApp.Controllers.TasksController",
     "Method": "UpdateTask",
     "RelativePath": "api/Tasks/{id}",
     "HttpMethod": "PUT",
@@ -87,15 +98,15 @@
         "IsRequired": true
       },
       {
-        "Name": "task",
-        "Type": "TaskManagementApp.Models.Task",
+        "Name": "taskmodel",
+        "Type": "TaskManagementApp.Models.TaskModel",
         "IsRequired": true
       }
     ],
     "ReturnTypes": []
   },
   {
-    "ContainingType": "TasksController",
+    "ContainingType": "TaskManagementApp.Controllers.TasksController",
     "Method": "DeleteTask",
     "RelativePath": "api/Tasks/{id}",
     "HttpMethod": "DELETE",

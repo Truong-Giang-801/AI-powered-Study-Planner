@@ -20,5 +20,23 @@ namespace TaskManagementApp.Models
 
         [FirestoreProperty]
         public bool IsCompleted { get; set; }
+
+        // Store as string in Firestore, but use enum for internal logic
+        [FirestoreProperty]
+        public string Status { get; set; } = TaskStatus.Todo.ToString(); // Default value "Todo"
+
+        // Convert string to enum for internal logic
+        public TaskStatus StatusEnum
+        {
+            get => Enum.TryParse(Status, out TaskStatus status) ? status : TaskStatus.Todo; // Default to Todo if invalid
+            set => Status = value.ToString(); // Set as string for Firestore
+        }
+    }
+
+    public enum TaskStatus
+    {
+        Todo,
+        Doing,
+        Done
     }
 }

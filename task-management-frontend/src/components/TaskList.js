@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const TaskList = () => {
-    const [tasks, setTasks] = useState([]);
+    const [tasks, setTasks] = useState({
+        todo: [],
+        doing: [],
+        done: [],
+    });
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -12,7 +17,14 @@ const TaskList = () => {
                         'Content-Type': 'application/json',
                     }
                 });
-                setTasks(response.data);
+
+                // Assuming the API response contains a list of tasks with status fields
+                const categorizedTasks = {
+                    todo: response.data.filter(task => task.status === 'Todo'),
+                    doing: response.data.filter(task => task.status === 'Doing'),
+                    done: response.data.filter(task => task.status === 'Done'),
+                };
+                setTasks(categorizedTasks);
             } catch (error) {
                 console.error('Error fetching tasks:', error);
             }
@@ -21,86 +33,168 @@ const TaskList = () => {
         fetchTasks();
     }, []);
 
-    // Format the due date
     const formatDueDate = (dueDate) => {
         const date = new Date(dueDate);
         return date.toLocaleDateString('en-US');
     };
 
-    // Handle checkbox change
     const handleCheckboxChange = async (taskId, isChecked) => {
         try {
-            // Update the task locally
-            setTasks(prevTasks =>
-                prevTasks.map(task =>
-                    task.id === taskId ? { ...task, isCompleted: isChecked } : task
-                )
-            );
+            setTasks(prevTasks => {
+                const updatedTasks = { ...prevTasks };
+                for (let status in updatedTasks) {
+                    const task = updatedTasks[status].find(task => task.id === taskId);
+                    if (task) {
+                        task.isCompleted = isChecked;
+                    }
+                }
+                return updatedTasks;
+            });
 
-            // Send the updated task (with the full task data) to the server
-            const updatedTask = tasks.find(task => task.id === taskId);
+            const updatedTask = Object.values(tasks).flat().find(task => task.id === taskId);
             await axios.put(`http://localhost:5251/api/tasks/${taskId}`, {
                 ...updatedTask,
-                isCompleted: isChecked,  // Ensure only this field is updated
+                isCompleted: isChecked,
             });
         } catch (error) {
             console.error('Error updating task:', error);
         }
     };
 
-    // Handle delete task
     const handleDeleteTask = async (taskId) => {
         try {
-            // Delete the task locally
-            setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+            setTasks(prevTasks => {
+                const updatedTasks = { ...prevTasks };
+                for (let status in updatedTasks) {
+                    updatedTasks[status] = updatedTasks[status].filter(task => task.id !== taskId);
+                }
+                return updatedTasks;
+            });
 
-            // Send delete request to the server
             await axios.delete(`http://localhost:5251/api/tasks/${taskId}`);
         } catch (error) {
             console.error('Error deleting task:', error);
         }
     };
 
+    const onDragEnd = async (result) => {
+        const { destination, source } = result;
+    
+        // If there's no destination (dropped outside a droppable area), do nothing
+        if (!destination) return;
+    
+        // If the task hasn't moved to a new column, do nothing
+        if (destination.droppableId === source.droppableId && destination.index === source.index) {
+            return;
+        }
+    
+        const sourceColumn = tasks[source.droppableId];
+        const destinationColumn = tasks[destination.droppableId];
+        const [movedTask] = sourceColumn.splice(source.index, 1);
+        destinationColumn.splice(destination.index, 0, movedTask);
+    
+        // Map droppableId to status enum (0 for Todo, 1 for Doing, 2 for Done)
+        movedTask.statusEnum = destination.droppableId === 'todo' ? 0 :
+                               destination.droppableId === 'doing' ? 1 : 2;
+    
+        // Update the frontend state
+        setTasks({
+            ...tasks,
+            [source.droppableId]: sourceColumn,
+            [destination.droppableId]: destinationColumn,
+        });
+    
+        // Update the task status in the backend (server)
+        try {
+            await axios.put(`http://localhost:5251/api/tasks/${movedTask.id}`, movedTask);
+        } catch (error) {
+            console.error('Error updating task status on the server:', error);
+        }
+    };
+    
+    
+    
+    
+
     return (
         <div style={styles.container}>
             <h2 style={styles.title}>Task List</h2>
-            <ul style={styles.taskList}>
-                {tasks.map(task => (
-                    <li key={task.id} style={styles.taskItem}>
-                        <div style={styles.taskDetails}>
-                            <strong>{task.title}</strong> - {task.description}
-                        </div>
-                        <div style={styles.dueDate}>
-                            <span>Due: {formatDueDate(task.dueDate)}</span>
-                        </div>
-                        <div style={styles.completed}>
-                            <label>
-                                <input 
-                                    type="checkbox" 
-                                    checked={task.isCompleted} 
-                                    onChange={(e) => handleCheckboxChange(task.id, e.target.checked)} 
-                                />
-                                {task.isCompleted ? 'Completed' : 'Incompleted'}
-                            </label>
-                        </div>
-                        <div style={styles.deleteButton}>
-                            <button 
-                                onClick={() => handleDeleteTask(task.id)} 
-                                style={styles.deleteBtn}
-                            >
-                                Delete
-                            </button>
-                        </div>
-                    </li>
-                ))}
-            </ul>
+            <DragDropContext onDragEnd={onDragEnd}>
+                <div style={styles.columns}>
+                    {['todo', 'doing', 'done'].map((status) => (
+                        <Droppable droppableId={status} key={status}>
+                            {(provided) => (
+                                <div
+                                    ref={provided.innerRef}
+                                    {...provided.droppableProps}
+                                    style={{
+                                        ...styles.column,
+                                        backgroundColor:
+                                            status === 'todo'
+                                                ? '#f8d7da'
+                                                : status === 'doing'
+                                                ? '#cce5ff'
+                                                : '#d4edda',
+                                    }}
+                                >
+                                    <h3>{status.charAt(0).toUpperCase() + status.slice(1)}</h3>
+                                    {tasks[status].map((task, index) => (
+                                        <Draggable key={task.id} draggableId={task.id} index={index}>
+                                            {(provided) => (
+                                                <div
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    {...provided.dragHandleProps}
+                                                    style={{
+                                                        ...provided.draggableProps.style,
+                                                        ...styles.taskItem,
+                                                        backgroundColor: '#fff',
+                                                    }}
+                                                >
+                                                    <div style={styles.taskDetails}>
+                                                        <strong>{task.title}</strong> - {task.description}
+                                                    </div>
+                                                    <div style={styles.dueDate}>
+                                                        <span>Due: {formatDueDate(task.dueDate)}</span>
+                                                    </div>
+                                                    <div style={styles.completed}>
+                                                        <label>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={task.isCompleted}
+                                                                onChange={(e) =>
+                                                                    handleCheckboxChange(task.id, e.target.checked)
+                                                                }
+                                                            />
+                                                            {task.isCompleted ? 'Completed' : 'Incompleted'}
+                                                        </label>
+                                                    </div>
+                                                    <div style={styles.deleteButton}>
+                                                        <button
+                                                            onClick={() => handleDeleteTask(task.id)}
+                                                            style={styles.deleteBtn}
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder}
+                                </div>
+                            )}
+                        </Droppable>
+                    ))}
+                </div>
+            </DragDropContext>
         </div>
     );
 };
 
 const styles = {
     container: {
-        maxWidth: '800px',
+        maxWidth: '1200px',
         margin: '0 auto',
         padding: '20px',
         backgroundColor: '#f4f4f4',
@@ -112,15 +206,20 @@ const styles = {
         fontSize: '24px',
         color: '#333',
     },
-    taskList: {
-        listStyleType: 'none',
-        padding: '0',
+    columns: {
+        display: 'flex',
+        justifyContent: 'space-between',
         marginTop: '20px',
+    },
+    column: {
+        width: '30%',
+        padding: '20px',
+        borderRadius: '5px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
     },
     taskItem: {
         padding: '10px',
         marginBottom: '10px',
-        backgroundColor: '#fff',
         border: '1px solid #ddd',
         borderRadius: '4px',
         boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
