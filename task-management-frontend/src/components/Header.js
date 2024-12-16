@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { getAuth, signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
+import './Header.css'; // Import the CSS file
 
 const Header = ({ user }) => {
     const navigate = useNavigate();
@@ -17,32 +18,32 @@ const Header = ({ user }) => {
     };
 
     return (
-        <header>
-            <nav>
-                <ul>
-                    <li>
-                        <Link to="/dashboard">Dashboard</Link>
+        <header className="header">
+            <nav className="nav">
+                <ul className="nav-list">
+                    <li className="nav-item">
+                        <Link to="/dashboard" className="nav-link">Dashboard</Link>
                     </li>
-                    <li>
-                        <Link to="/tasks">Tasks</Link>
+                    <li className="nav-item">
+                        <Link to="/tasks" className="nav-link">Tasks</Link>
                     </li>
-                    <li>
-                        <Link to="/create-task">Create Task</Link>
+                    <li className="nav-item">
+                        <Link to="/create-task" className="nav-link">Create Task</Link>
                     </li>
-                    <li>
-                        <Link to="/calendar">Calendar</Link>
+                    <li className="nav-item">
+                        <Link to="/calendar" className="nav-link">Calendar</Link>
                     </li>
-                    <li>
-                        <Link to="/timer">Timer</Link>
+                    <li className="nav-item">
+                        <Link to="/timer" className="nav-link">Timer</Link>
                     </li>
                     {user && (
-                        <li>
-                            <button onClick={handleLogout}>Logout</button>
+                        <li className="nav-item">
+                            <button onClick={handleLogout} className="logout-button">Logout</button>
                         </li>
                     )}
                 </ul>
             </nav>
-            {user && <p>Welcome, {user.email}!</p>}
+            {user && <p className="welcome-message">Welcome, {user.email}!</p>}
         </header>
     );
 };

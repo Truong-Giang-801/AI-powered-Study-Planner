@@ -1,11 +1,8 @@
 using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using TaskManagementApp.Models;
 
 namespace TaskManagementApp.Services
@@ -73,6 +70,9 @@ namespace TaskManagementApp.Services
 
             try
             {
+                // Ensure Status is updated correctly (mapping the StatusEnum)
+                taskmodel.Status = taskmodel.StatusEnum.ToString();
+
                 var docRef = await _firestoreDb.Collection("tasks").AddAsync(taskmodel);
                 taskmodel.Id = docRef.Id;
                 return taskmodel;
@@ -83,38 +83,36 @@ namespace TaskManagementApp.Services
             }
         }
 
-
-    public async Task<TaskModel> UpdateTaskAsync(TaskModel taskmodel)
-    {
-        if (taskmodel == null || string.IsNullOrWhiteSpace(taskmodel.Id))
+        public async Task<TaskModel> UpdateTaskAsync(TaskModel taskmodel)
         {
-            throw new ArgumentException("Task cannot be null and must have a valid Id.", nameof(taskmodel));
-        }
-
-        try
-        {
-            // Convert any DateTime fields to UTC before saving to Firestore
-            if (taskmodel.DueDate.Kind != DateTimeKind.Utc)
+            if (taskmodel == null || string.IsNullOrWhiteSpace(taskmodel.Id))
             {
-                taskmodel.DueDate = taskmodel.DueDate.ToUniversalTime();
+                throw new ArgumentException("Task cannot be null and must have a valid Id.", nameof(taskmodel));
             }
 
-            // Ensure Status is updated correctly (mapping the StatusEnum)
-            taskmodel.Status = taskmodel.StatusEnum.ToString();
+            try
+            {
+                // Convert any DateTime fields to UTC before saving to Firestore
+                if (taskmodel.DueDate.Kind != DateTimeKind.Utc)
+                {
+                    taskmodel.DueDate = taskmodel.DueDate.ToUniversalTime();
+                }
 
-            // Get Firestore document reference
-            var docRef = _firestoreDb.Collection("tasks").Document(taskmodel.Id);
+                // Ensure Status is updated correctly (mapping the StatusEnum)
+                taskmodel.Status = taskmodel.StatusEnum.ToString();
 
-            // Overwrite the document with the updated task data
-            await docRef.SetAsync(taskmodel, SetOptions.Overwrite);
-            return taskmodel;
+                // Get Firestore document reference
+                var docRef = _firestoreDb.Collection("tasks").Document(taskmodel.Id);
+
+                // Overwrite the document with the updated task data
+                await docRef.SetAsync(taskmodel, SetOptions.Overwrite);
+                return taskmodel;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to update task with ID {taskmodel.Id}", ex);
+            }
         }
-        catch (Exception ex)
-        {
-            throw new Exception($"Failed to update task with ID {taskmodel.Id}", ex);
-        }
-    }
-
 
         public async Task<bool> DeleteTaskAsync(string id)
         {

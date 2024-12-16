@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { auth, provider } from '../firebase';
 import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
 import { Link, useNavigate } from 'react-router-dom';
+import './Login.css'; // Import the CSS file
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -30,15 +31,16 @@ const Login = () => {
     };
 
     return (
-        <div>
+        <div className="login-container">
             <h2>Login</h2>
-            <form onSubmit={handleLogin}>
+            <form onSubmit={handleLogin} className="login-form">
                 <input
                     type="email"
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    className="login-input"
                 />
                 <input
                     type="password"
@@ -46,11 +48,12 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    className="login-input"
                 />
-                <button type="submit">Login</button>
+                <button type="submit" className="login-button">Login</button>
             </form>
-            <button onClick={handleGoogleLogin}>Login with Google</button>
-            <p>Don't have an account? <Link to="/register">Register here</Link></p>
+            <button onClick={handleGoogleLogin} className="google-login-button">Login with Google</button>
+            <p>Don't have an account? <Link to="/register" className="register-link">Register here</Link></p>
         </div>
     );
 };

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TaskManagementApp.Models;
@@ -44,7 +45,7 @@ namespace TaskManagementApp.Controllers
             }
 
             // Validate that status is a valid enum value
-            if (!Enum.IsDefined(typeof(TaskManagementApp.Models.TaskStatus), taskmodel.Status))
+            if (!Enum.IsDefined(typeof(TaskManagementApp.Models.TaskStatus), taskmodel.StatusEnum))
             {
                 return BadRequest("Invalid status value.");
             }
@@ -60,7 +61,6 @@ namespace TaskManagementApp.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
-
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTask(string id)
@@ -87,11 +87,17 @@ namespace TaskManagementApp.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTask(string id, TaskModel taskmodel)
+        public async Task<IActionResult> UpdateTask(string id, [FromBody] TaskModel taskmodel)
         {
             if (string.IsNullOrEmpty(id) || taskmodel == null)
             {
                 return BadRequest("Both ID and Task must be provided");
+            }
+
+            // Validate that status is a valid enum value
+            if (!Enum.IsDefined(typeof(TaskManagementApp.Models.TaskStatus), taskmodel.StatusEnum))
+            {
+                return BadRequest("Invalid status value.");
             }
 
             taskmodel.Id = id;

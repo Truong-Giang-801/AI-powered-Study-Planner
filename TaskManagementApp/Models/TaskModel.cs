@@ -31,12 +31,31 @@ namespace TaskManagementApp.Models
             get => Enum.TryParse(Status, out TaskStatus status) ? status : TaskStatus.Todo; // Default to Todo if invalid
             set => Status = value.ToString(); // Set as string for Firestore
         }
+
+        // Store as string in Firestore, but use enum for internal logic
+        [FirestoreProperty]
+        public string Priority { get; set; } = TaskPriority.Medium.ToString(); // Default value "Medium"
+
+        // Convert string to enum for internal logic
+        public TaskPriority PriorityEnum
+        {
+            get => Enum.TryParse(Priority, out TaskPriority priority) ? priority : TaskPriority.Medium; // Default to Medium if invalid
+            set => Priority = value.ToString(); // Set as string for Firestore
+        }
     }
 
     public enum TaskStatus
     {
+        Expired,
         Todo,
         Doing,
         Done
+    }
+
+    public enum TaskPriority
+    {
+        Low,
+        Medium,
+        High
     }
 }
