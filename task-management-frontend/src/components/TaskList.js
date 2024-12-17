@@ -18,53 +18,54 @@ const TaskList = () => {
     const [filterPriority, setFilterPriority] = useState('all');
     const [sortOrder, setSortOrder] = useState('asc');
     const [analysisFeedback, setAnalysisFeedback] = useState('');
+    const [isExpanded, setIsExpanded] = useState(false);
 
-    useEffect(() => {
-        const fetchTasks = async () => {
-            try {
-                const response = await axios.get('http://localhost:5251/api/tasks', {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
+    const fetchTasks = async () => {
+        try {
+            const response = await axios.get('http://localhost:5251/api/tasks', {
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
 
-                const today = new Date();
-                const categorizedTasks = {
-                    expired: [],
-                    todo: [],
-                    doing: [],
-                    done: [],
-                };
+            const today = new Date();
+            const categorizedTasks = {
+                expired: [],
+                todo: [],
+                doing: [],
+                done: [],
+            };
 
-                for (const task of response.data) {
-                    const dueDate = new Date(task.dueDate);
-                    if (!task.isCompleted && dueDate < today) {
-                        task.status = 'Expired';
-                        task.statusEnum = 0;
-                        await axios.put(`http://localhost:5251/api/tasks/${task.id}`, {
-                            ...task,
-                            status: 'Expired',
-                            statusEnum: 0,
-                        });
-                    }
-
-                    if (task.statusEnum === 0) {
-                        categorizedTasks.expired.push(task);
-                    } else if (task.statusEnum === 1) {
-                        categorizedTasks.todo.push(task);
-                    } else if (task.statusEnum === 2) {
-                        categorizedTasks.doing.push(task);
-                    } else if (task.statusEnum === 3) {
-                        categorizedTasks.done.push(task);
-                    }
+            for (const task of response.data) {
+                const dueDate = new Date(task.dueDate);
+                if (!task.isCompleted && dueDate < today) {
+                    task.status = 'Expired';
+                    task.statusEnum = 0;
+                    await axios.put(`http://localhost:5251/api/tasks/${task.id}`, {
+                        ...task,
+                        status: 'Expired',
+                        statusEnum: 0,
+                    });
                 }
 
-                setTasks(categorizedTasks);
-            } catch (error) {
-                console.error('Error fetching tasks:', error);
+                if (task.statusEnum === 0) {
+                    categorizedTasks.expired.push(task);
+                } else if (task.statusEnum === 1) {
+                    categorizedTasks.todo.push(task);
+                } else if (task.statusEnum === 2) {
+                    categorizedTasks.doing.push(task);
+                } else if (task.statusEnum === 3) {
+                    categorizedTasks.done.push(task);
+                }
             }
-        };
 
+            setTasks(categorizedTasks);
+        } catch (error) {
+            console.error('Error fetching tasks:', error);
+        }
+    };
+
+    useEffect(() => {
         fetchTasks();
     }, []);
 
@@ -155,8 +156,13 @@ const TaskList = () => {
 
         if (!destination) return;
 
-        // Prevent dragging expired tasks and dragging tasks to the expired or done column
-        if (source.droppableId === 'expired' || destination.droppableId === 'expired' || destination.droppableId === 'done') {
+        // Prevent dragging tasks from the expired and done columns
+        if (source.droppableId === 'expired' || source.droppableId === 'done') {
+            return;
+        }
+
+        // Prevent dragging tasks to the expired or done columns
+        if (destination.droppableId === 'expired' || destination.droppableId === 'done') {
             return;
         }
 
@@ -180,6 +186,7 @@ const TaskList = () => {
 
         try {
             await axios.put(`http://localhost:5251/api/tasks/${movedTask.id}`, movedTask);
+            fetchTasks(); // Fetch updated tasks after drop
         } catch (error) {
             console.error('Error updating task status on the server:', error);
         }
@@ -194,31 +201,43 @@ const TaskList = () => {
     };
 
     const analyzeSchedule = async () => {
-        
         try {
-
             const apiKey = process.env.REACT_APP_GEMINI_API_KEY; // Use environment variable
             if (!apiKey) {
                 throw new Error('API key is missing');
             }
             const prompt = generatePrompt(tasks);
-            console.log('You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.\n' + prompt);
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.REACT_APP_GEMINI_API_KEY}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
             const headers = {
                 'Content-Type': 'application/json',
             };
 
             const data = {
                 contents: [
-                {
-                    parts: [{ text: 'You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.\n' + prompt }],
-                },
+                    {
+                        parts: [{ text: 'You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.\n' + prompt }],
+                    },
                 ],
             };
 
             const res = await axios.post(apiUrl, data, { headers });
             const generatedText = res.data.candidates[0].content.parts[0].text;
-            setAnalysisFeedback(generatedText);
+
+            const formattedFeedback = generatedText
+                .replace(/\*\*Overview:\*\*/g, '<h3>Overview:</h3>')
+                .replace(/\*\*Expired Task:\*\*/g, '<h3>Expired Task:</h3>')
+                .replace(/\*\*To-Do Tasks:\*\*/g, '<h3>To-Do Tasks:</h3>')
+                .replace(/\*\*Doing Tasks:\*\*/g, '<h3>Doing Tasks:</h3>')
+                .replace(/\*\*Warnings:\*\*/g, '<h3 class="warnings">Warnings:</h3>')
+                .replace(/\*\*Prioritization Recommendations:\*\*/g, '<h3 class="recommendations">Prioritization Recommendations:</h3>')
+                .replace(/\*\*Task ID:\*\*/g, '<span class="task-id">Task ID:</span>')
+                .replace(/\*\*Due Date:\*\*/g, '<span class="due-date">Due Date:</span>')
+                .replace(/\*\*Priority:\*\*/g, '<span class="priority">Priority:</span>')
+                .replace(/\*\*Feedback:\*\*/g, '<span class="feedback">Feedback:</span>')
+                .replace(/\n/g, '<br>');
+
+            setAnalysisFeedback(formattedFeedback);
+            setIsExpanded(false); // Collapse the feedback initially
         } catch (error) {
             console.error('Error analyzing schedule:', error);
             setAnalysisFeedback('Failed to analyze schedule. Please try again later.');
@@ -265,7 +284,14 @@ const TaskList = () => {
             <h2 className="task-list-title">Task List</h2>
             <button className="create-task-button" onClick={() => setShowTaskForm(true)}>Create Task</button>
             <button className="analyze-schedule-button" onClick={analyzeSchedule}>Analyze Schedule</button>
-            {analysisFeedback && <div className="analysis-feedback">{analysisFeedback}</div>}
+            {analysisFeedback && (
+                <div className="analysis-feedback">
+                    <div dangerouslySetInnerHTML={{ __html: isExpanded ? analysisFeedback : analysisFeedback.substring(0, 200) + '...' }}></div>
+                    <button onClick={() => setIsExpanded(!isExpanded)} className="expand-collapse-btn">
+                        {isExpanded ? 'Collapse' : 'Expand'}
+                    </button>
+                </div>
+            )}
             {showTaskForm && (
                 <div className="modal">
                     <div className="modal-content">
@@ -324,14 +350,13 @@ const TaskList = () => {
                                 >
                                     <h3>{status.charAt(0).toUpperCase() + status.slice(1)}</h3>
                                     {sortedTasks[status].map((task, index) => (
-                                        <Draggable key={task.id} draggableId={task.id} index={index} isDragDisabled={status === 'expired'}>
+                                        <Draggable key={task.id} draggableId={task.id} index={index} isDragDisabled={status === 'expired' || status === 'done'}>
                                             {(provided) => (
                                                 <div
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
                                                     {...provided.dragHandleProps}
                                                     className="task-item"
-                                                    onClick={() => handleEditTask(task)}
                                                 >
                                                     <div className="task-details">
                                                         <strong>{task.title}</strong> - {task.description}
@@ -354,7 +379,13 @@ const TaskList = () => {
                                                             {task.isCompleted ? 'Completed' : 'Incomplete'}
                                                         </label>
                                                     </div>
-                                                    <div className="delete-button">
+                                                    <div className="task-buttons">
+                                                        <button
+                                                            onClick={() => handleEditTask(task)}
+                                                            className="update-btn"
+                                                        >
+                                                            Update
+                                                        </button>
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
