@@ -3,7 +3,8 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import axios from "axios";
-import "./Calendar.css"; // Import the CSS file
+import { Container, Box, Typography, CircularProgress, Alert } from "@mui/material";
+
 const Calendar = () => {
   const [events, setEvents] = useState([]);
   const [error, setError] = useState(null);
@@ -74,67 +75,21 @@ const Calendar = () => {
     const newStart = info.event.start;
     const taskId = info.event.id;
 
-    // Create a copy of the event's current properties to preserve the other fields
     const updatedTaskData = {
-      id: info.event.id,
-      title: info.event.title, // Preserve title
-      description: info.event.extendedProps.description, // Preserve description
-      status: info.event.extendedProps.status, // Preserve status
-      statusEnum: info.event.extendedProps.statusEnum,
-      isCompleted: info.event.extendedProps.isCompleted,
-      backgroundColor: info.event.backgroundColor, // Preserve color
-      borderColor: info.event.borderColor, // Preserve border color
-      textColor: info.event.textColor, // Preserve text color
-      priority: info.event.extendedProps.priority,
-      dueDate: newStart.toISOString(), // Update due date only
+      ...info.event.extendedProps,
+      dueDate: newStart.toISOString(), // Update due date
     };
 
-    // Determine the new status and background color based on the new due date
-    let newStatus = updatedTaskData.status;
-    let newStatusEnum = updatedTaskData.statusEnum;
-    let newBackgroundColor = updatedTaskData.backgroundColor;
-
-    if (info.event.extendedProps.isCompleted) {
-      newBackgroundColor = "#28a745"; // Green for Done
-    } else if (new Date(updatedTaskData.dueDate) < new Date()) {
-      newStatus = "Expired";
-      newStatusEnum = 0; // Expired
-      newBackgroundColor = "#dc3545"; // Red for Expired
-    } else {
-      newStatus = "Todo";
-      newStatusEnum = 1; // Todo
-      newBackgroundColor = "#ffc107"; // Yellow for Todo
-    }
-
-    updatedTaskData.status = newStatus;
-    updatedTaskData.statusEnum = newStatusEnum;
-
     try {
-      // Send the updated dueDate and status to the server to update the task
-      await axios.put(`http://localhost:5251/api/tasks/${taskId}`, {
-        dueDate: updatedTaskData.dueDate, // Only update the due date
-        id: info.event.id,
-        title: info.event.title, // Preserve title
-        description: info.event.extendedProps.description, // Preserve description
-        status: newStatus, // Update status
-        statusEnum: newStatusEnum, // Update statusEnum
-        isCompleted: info.event.extendedProps.isCompleted,
-        priority: info.event.extendedProps.priority,
-      });
+      await axios.put(`http://localhost:5251/api/tasks/${taskId}`, updatedTaskData);
 
-      // Update the state to reflect the changes immediately
       setEvents((prevEvents) =>
         prevEvents.map((event) =>
           event.id === taskId
-            ? { ...event, start: newStart.toISOString(), backgroundColor: newBackgroundColor, borderColor: newBackgroundColor, status: newStatus, statusEnum: newStatusEnum }
+            ? { ...event, start: newStart.toISOString() }
             : event
         )
       );
-
-      // Update the event in the calendar view
-      info.event.setProp("backgroundColor", newBackgroundColor);
-      info.event.setProp("borderColor", newBackgroundColor);
-      info.event.setStart(newStart); // Update the start date in the calendar
     } catch (error) {
       console.error("Error updating task due date:", error);
     }
@@ -145,80 +100,79 @@ const Calendar = () => {
     alert(
       `Event: ${info.event.title}\nDescription: ${
         info.event.extendedProps.description
-      }\nDate: ${info.event.start.toDateString()}\n Status: ${info.event.extendedProps.status} \n Priority: ${info.event.extendedProps.priority}`
+      }\nDate: ${info.event.start.toDateString()}\nStatus: ${
+        info.event.extendedProps.status
+      }\nPriority: ${info.event.extendedProps.priority}`
     );
   };
 
   return (
-    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
+    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+      <Box sx={{ textAlign: "center", mb: 2 }}>
+        <Typography variant="h4" component="h1" color="primary" gutterBottom>
+          Task Calendar
+        </Typography>
+      </Box>
+
       {error ? (
-        <p style={{ color: "red", textAlign: "center" }}>{error}</p>
+        <Alert severity="error" sx={{ textAlign: "center" }}>
+          {error}
+        </Alert>
       ) : events.length === 0 ? (
-        <p style={{ textAlign: "center" }}>Loading events...</p>
+        <Box display="flex" justifyContent="center" alignItems="center" sx={{ height: "300px" }}>
+          <CircularProgress color="primary" />
+        </Box>
       ) : (
-        <FullCalendar
-          plugins={[dayGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          events={events}
-          editable={true}
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,dayGridWeek,dayGridDay",
+        <Box
+          sx={{
+            p: 2,
+            borderRadius: "8px",
+            boxShadow: 3,
+            backgroundColor: "#fafafa",
           }}
-          eventContent={(eventInfo) => {
-            const emoji = eventInfo.event.extendedProps.emoji || "📅";
-            const description = eventInfo.event.extendedProps.description;
-            // return (
-            //   <div
-            //     style={{
-            //       display: "flex",
-            //       alignItems: "center",
-            //       padding: "5px",
-            //       backgroundColor:
-            //         eventInfo.event.backgroundColor || "#f0f0f0",
-            //       color: eventInfo.event.textColor || "#000",
-            //       borderRadius: "5px",
-            //       fontSize: "0.85rem",
-            //       gap: "8px",
-            //     }}
-            //   >
-            //     <span style={{ fontSize: "1.2rem" }}>{emoji}</span>
-            //     <div style={{ display: "flex", flexDirection: "column" }}>
-            //       <span style={{ fontWeight: "bold" }}>
-            //         {eventInfo.event.title}
-            //       </span>
-            //       <span style={{ fontSize: "0.8rem", color: "#f8f9fa" }}>
-            //         {description}
-            //       </span>
-            //     </div>
-            //   </div>
-            // );
-            return (
-              <div className="fc-event-content"style={{
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "5px",
-                      backgroundColor:
-                        eventInfo.event.backgroundColor || "#f0f0f0",
-                      color: eventInfo.event.textColor || "#000",
-                      borderRadius: "5px",
-                      fontSize: "0.85rem",
-                      gap: "8px",
-                    }}>
-                <span className="fc-event-emoji">{emoji}</span>
-                <div className="fc-event-details">
-                  <span className="fc-event-title">{eventInfo.event.title}</span>
-                  <span className="fc-event-description">{description}</span>
-                </div>
-              </div>
-            );
-          }}
-          eventClick={handleEventClick}
-          eventDrop={handleEventDrop}
-        />
+        >
+          <FullCalendar
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            events={events}
+            editable={true}
+            headerToolbar={{
+              left: "prev,next today",
+              center: "title",
+              right: "dayGridMonth,dayGridWeek,dayGridDay",
+            }}
+            eventContent={(eventInfo) => {
+              const emoji = eventInfo.event.extendedProps.emoji || "📅";
+              return (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    p: 0.5,
+                    backgroundColor: eventInfo.event.backgroundColor,
+                    borderRadius: "4px",
+                    color: eventInfo.event.textColor,
+                    gap: "8px",
+                  }}
+                >
+                  <span style={{ fontSize: "1.2rem" }}>{emoji}</span>
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight="bold">
+                      {eventInfo.event.title}
+                    </Typography>
+                    <Typography variant="caption" display="block" color="inherit">
+                      {eventInfo.event.extendedProps.description}
+                    </Typography>
+                  </Box>
+                </Box>
+              );
+            }}
+            eventClick={handleEventClick}
+            eventDrop={handleEventDrop}
+          />
+        </Box>
       )}
-    </div>
+    </Container>
   );
 };
 
