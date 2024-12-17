@@ -4558,24 +4558,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\giang\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+    "C:\\Users\\acer\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\TaskManagementApp.csproj",
+      "projectUniqueName": "D:\\HCMUS\\WEB NANG CAO\\Final\\AI-powered-Study-Planner\\TaskManagementApp\\TaskManagementApp.csproj",
       "projectName": "TaskManagementApp",
-      "projectPath": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\TaskManagementApp.csproj",
-      "packagesPath": "C:\\Users\\giang\\.nuget\\packages\\",
-      "outputPath": "D:\\Document for Uni\\year 4\\advance web dev\\TaskManagementApp\\TaskManagementApp\\obj\\",
+      "projectPath": "D:\\HCMUS\\WEB NANG CAO\\Final\\AI-powered-Study-Planner\\TaskManagementApp\\TaskManagementApp.csproj",
+      "packagesPath": "C:\\Users\\acer\\.nuget\\packages\\",
+      "outputPath": "D:\\HCMUS\\WEB NANG CAO\\Final\\AI-powered-Study-Planner\\TaskManagementApp\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-      ],
       "configFilePaths": [
-        "C:\\Users\\giang\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Users\\acer\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [

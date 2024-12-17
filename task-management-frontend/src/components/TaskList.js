@@ -194,33 +194,31 @@ const TaskList = () => {
     };
 
     const analyzeSchedule = async () => {
+        
         try {
-            const apiKey = "AIzaSyDa2vNzWPIPM82QLb1Vzs9-2LwdosTNh4c"; // Use environment variable
+
+            const apiKey = process.env.REACT_APP_GEMINI_API_KEY; // Use environment variable
             if (!apiKey) {
                 throw new Error('API key is missing');
             }
             const prompt = generatePrompt(tasks);
+            console.log('You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.\n' + prompt);
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.REACT_APP_GEMINI_API_KEY}`;
+            const headers = {
+                'Content-Type': 'application/json',
+            };
 
-            const response = await axios.post(
-                'https://api.gemini.ai/v1/chat/completions', // Updated endpoint for GeminiAI
+            const data = {
+                contents: [
                 {
-                    model: 'gemini-3.5-turbo',
-                    messages: [
-                        { role: 'system', content: 'You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.' },
-                        { role: 'user', content: prompt }
-                    ],
-                    max_tokens: 500,
-                    temperature: 0.7,
+                    parts: [{ text: 'You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.\n' + prompt }],
                 },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-api-key': apiKey, // Use the API key directly
-                    },
-                }
-            );
+                ],
+            };
 
-            setAnalysisFeedback(response.data.choices[0].message.content);
+            const res = await axios.post(apiUrl, data, { headers });
+            const generatedText = res.data.candidates[0].content.parts[0].text;
+            setAnalysisFeedback(generatedText);
         } catch (error) {
             console.error('Error analyzing schedule:', error);
             setAnalysisFeedback('Failed to analyze schedule. Please try again later.');
