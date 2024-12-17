@@ -18,6 +18,7 @@ import {
     IconButton 
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import TaskForm from './TaskForm';
 import TaskManagementFeedback from './TaskManagementFeedback';
@@ -414,7 +415,6 @@ const TaskList = () => {
                                         marginBottom: 1,
                                         boxShadow: 2
                                     }}
-                                    onClick={() => handleEditTask(task)}
                                     >
                                     <CardContent>
                                         <Typography variant="subtitle1">
@@ -448,6 +448,14 @@ const TaskList = () => {
                                             }}
                                         >
                                             <DeleteIcon />
+                                        </IconButton>
+                                        <IconButton 
+                                            onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditTask(task);
+                                            }}
+                                        >
+                                            <EditIcon />
                                         </IconButton>
                                         </Box>
                                     </CardContent>
