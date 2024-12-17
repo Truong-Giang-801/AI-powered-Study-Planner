@@ -64,7 +64,7 @@ const TaskList = () => {
             if (!user) return;
 
             try {
-                const response = await axios.get('http://localhost:5251/api/tasks', {
+                const response = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`, {
                     headers: {
                         'Content-Type': 'application/json',
                     }
@@ -85,7 +85,7 @@ const TaskList = () => {
                     if (!task.isCompleted && dueDate < today) {
                         task.status = 'Expired';
                         task.statusEnum = 0;
-                        await axios.put(`http://localhost:5251/api/tasks/${task.id}`, {
+                        await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, {
                             ...task,
                             status: 'Expired',
                             statusEnum: 0,
@@ -144,7 +144,7 @@ const TaskList = () => {
 
                 setTasks(updatedTasks);
 
-                await axios.put(`http://localhost:5251/api/tasks/${taskId}`, {
+                await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${taskId}`, {
                     ...updatedTask,
                     isCompleted: isChecked,
                     status: updatedTask.status,
@@ -166,7 +166,7 @@ const TaskList = () => {
                 return updatedTasks;
             });
 
-            await axios.delete(`http://localhost:5251/api/tasks/${taskId}`);
+            await axios.delete(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${taskId}`);
         } catch (error) {
             console.error('Error deleting task:', error);
         }
@@ -223,7 +223,7 @@ const TaskList = () => {
         });
 
         try {
-            await axios.put(`http://localhost:5251/api/tasks/${movedTask.id}`, movedTask);
+            await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${movedTask.id}`, movedTask);
         } catch (error) {
             console.error('Error updating task status on the server:', error);
         }

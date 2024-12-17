@@ -17,7 +17,7 @@ const Calendar = () => {
       if (!user) return;
 
       try {
-        const response = await axios.get("http://localhost:5251/api/tasks");
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`);
         const taskEvents = response.data.map(async (task) => {
           if (task.userId !== user.uid) return null;
 
@@ -34,7 +34,7 @@ const Calendar = () => {
 
             // Update the task status to "Expired" in the backend
             try {
-              await axios.put(`http://localhost:5251/api/tasks/${task.id}`, {
+              await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, {
                 ...task,
                 status: "Expired",
                 statusEnum: 0, // 0 is the enum value for Expired
@@ -87,7 +87,7 @@ const Calendar = () => {
     };
 
     try {
-      await axios.put(`http://localhost:5251/api/tasks/${taskId}`, updatedTaskData);
+      await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${taskId}`, updatedTaskData);
 
       setEvents((prevEvents) =>
         prevEvents.map((event) =>

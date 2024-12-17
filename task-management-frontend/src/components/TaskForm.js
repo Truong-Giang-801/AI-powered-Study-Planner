@@ -67,10 +67,10 @@ const TaskForm = ({ onTaskCreated, onTaskUpdated, task }) => {
 
     try {
       if (task) {
-        await axios.put(`http://localhost:5251/api/tasks/${task.id}`, newTask);
+        await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, newTask);
         onTaskUpdated({ ...newTask, id: task.id });
       } else {
-        const response = await axios.post('http://localhost:5251/api/tasks', newTask);
+        const response = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`, newTask);
         alert('Task created successfully!');
         onTaskCreated(newTask);
       }

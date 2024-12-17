@@ -25,7 +25,7 @@ const Dashboard = () => {
         if (!user) return;
 
         // Fetch completed tasks data (change URL as needed)
-        axios.get('http://localhost:5251/api/tasks') // Replace with your tasks API endpoint
+        axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`) // Replace with your tasks API endpoint
             .then((response) => {
                 // Process the data to count completed tasks per month
                 const tasks = response.data;
