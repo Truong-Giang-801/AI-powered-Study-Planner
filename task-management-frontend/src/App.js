@@ -28,14 +28,14 @@ const App = () => {
             <div className="App">
                 {user && <Header user={user} />}
                 <Routes>
-                    <Route path="/calendar" element={<Calendar />} />
-                    <Route path="/tasks" element={<TaskList />} />
-                    <Route path="/create-task" element={<TaskForm />} />
-                    <Route path="/timer" element={<Timer />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="*" element={<Navigate to="/login" />} /> {/* Redirect to login */}
+                    <Route path="/calendar" element={user ? <Calendar /> : <Navigate to="/login" />} />
+                    <Route path="/tasks" element={user ? <TaskList /> : <Navigate to="/login" />} />
+                    <Route path="/create-task" element={user ? <TaskForm /> : <Navigate to="/login" />} />
+                    <Route path="/timer" element={user ? <Timer /> : <Navigate to="/login" />} />
+                    <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+                    <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
+                    <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
+                    <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
                 </Routes>
             </div>
         </Router>

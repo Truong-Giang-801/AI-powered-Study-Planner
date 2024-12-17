@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Button, Stack } from '@mui/material';
 
 const Timer = () => {
-  const [seconds, setSeconds] = useState(0);
+  const [time, setTime] = useState(0); // Total time in hundredths of a second
   const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
@@ -10,19 +10,24 @@ const Timer = () => {
 
     if (isActive) {
       interval = setInterval(() => {
-        setSeconds((seconds) => seconds + 1);
-      }, 1000);
-    } else if (!isActive && seconds !== 0) {
+        setTime((time) => time + 1); // Increment by 1 hundredth of a second
+      }, 10); // Update every 10ms (100Hz for centiseconds)
+    } else if (!isActive && time !== 0) {
       clearInterval(interval);
     }
 
     return () => clearInterval(interval);
-  }, [isActive, seconds]);
+  }, [isActive, time]);
 
   const reset = () => {
-    setSeconds(0);
+    setTime(0);
     setIsActive(false);
   };
+
+  const hours = Math.floor(time / 360000);
+  const minutes = Math.floor((time % 360000) / 6000);
+  const seconds = Math.floor((time % 6000) / 100);
+  const centiseconds = time % 100;
 
   return (
     <Container maxWidth="xs" sx={{ mt: 5, textAlign: 'center' }}>
@@ -43,8 +48,10 @@ const Timer = () => {
           variant="h3"
           sx={{ fontFamily: 'monospace', color: 'primary.main', mb: 3 }}
         >
-          {Math.floor(seconds / 60)}:
-          {seconds % 60 < 10 ? `0${seconds % 60}` : seconds % 60}
+          {hours < 10 ? `0${hours}` : hours}:
+          {minutes < 10 ? `0${minutes}` : minutes}:
+          {seconds < 10 ? `0${seconds}` : seconds}:
+          {centiseconds < 10 ? `0${centiseconds}` : centiseconds}
         </Typography>
 
         <Stack direction="row" justifyContent="center" spacing={2}>

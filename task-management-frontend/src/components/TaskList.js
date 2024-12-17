@@ -1,8 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { 
+    Grid, 
+    Box, 
+    Button, 
+    Typography, 
+    Card, 
+    CardContent, 
+    TextField, 
+    Select, 
+    MenuItem, 
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    FormControlLabel, 
+    Checkbox, 
+    IconButton 
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import TaskForm from './TaskForm';
-import './TaskList.css'; // Import the CSS file
+import TaskManagementFeedback from './TaskManagementFeedback';
+const columnColors = {
+    expired: { 
+      background: 'rgba(255, 0, 0, 0.1)', 
+      border: 'rgba(255, 0, 0, 0.3)' 
+    },
+    todo: { 
+      background: 'rgba(0, 0, 255, 0.1)', 
+      border: 'rgba(0, 0, 255, 0.3)' 
+    },
+    doing: { 
+      background: 'rgba(255, 165, 0, 0.1)', 
+      border: 'rgba(255, 165, 0, 0.3)' 
+    },
+    done: { 
+      background: 'rgba(0, 255, 0, 0.1)', 
+      border: 'rgba(0, 255, 0, 0.3)' 
+    }
+};
 
 const TaskList = () => {
     const [tasks, setTasks] = useState({
@@ -18,54 +54,53 @@ const TaskList = () => {
     const [filterPriority, setFilterPriority] = useState('all');
     const [sortOrder, setSortOrder] = useState('asc');
     const [analysisFeedback, setAnalysisFeedback] = useState('');
-    const [isExpanded, setIsExpanded] = useState(false);
-
-    const fetchTasks = async () => {
-        try {
-            const response = await axios.get('http://localhost:5251/api/tasks', {
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-
-            const today = new Date();
-            const categorizedTasks = {
-                expired: [],
-                todo: [],
-                doing: [],
-                done: [],
-            };
-
-            for (const task of response.data) {
-                const dueDate = new Date(task.dueDate);
-                if (!task.isCompleted && dueDate < today) {
-                    task.status = 'Expired';
-                    task.statusEnum = 0;
-                    await axios.put(`http://localhost:5251/api/tasks/${task.id}`, {
-                        ...task,
-                        status: 'Expired',
-                        statusEnum: 0,
-                    });
-                }
-
-                if (task.statusEnum === 0) {
-                    categorizedTasks.expired.push(task);
-                } else if (task.statusEnum === 1) {
-                    categorizedTasks.todo.push(task);
-                } else if (task.statusEnum === 2) {
-                    categorizedTasks.doing.push(task);
-                } else if (task.statusEnum === 3) {
-                    categorizedTasks.done.push(task);
-                }
-            }
-
-            setTasks(categorizedTasks);
-        } catch (error) {
-            console.error('Error fetching tasks:', error);
-        }
-    };
 
     useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const response = await axios.get('http://localhost:5251/api/tasks', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const today = new Date();
+                const categorizedTasks = {
+                    expired: [],
+                    todo: [],
+                    doing: [],
+                    done: [],
+                };
+
+                for (const task of response.data) {
+                    const dueDate = new Date(task.dueDate);
+                    if (!task.isCompleted && dueDate < today) {
+                        task.status = 'Expired';
+                        task.statusEnum = 0;
+                        await axios.put(`http://localhost:5251/api/tasks/${task.id}`, {
+                            ...task,
+                            status: 'Expired',
+                            statusEnum: 0,
+                        });
+                    }
+
+                    if (task.statusEnum === 0) {
+                        categorizedTasks.expired.push(task);
+                    } else if (task.statusEnum === 1) {
+                        categorizedTasks.todo.push(task);
+                    } else if (task.statusEnum === 2) {
+                        categorizedTasks.doing.push(task);
+                    } else if (task.statusEnum === 3) {
+                        categorizedTasks.done.push(task);
+                    }
+                }
+
+                setTasks(categorizedTasks);
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+        };
+
         fetchTasks();
     }, []);
 
@@ -156,17 +191,12 @@ const TaskList = () => {
 
         if (!destination) return;
 
-        // Prevent dragging tasks from the expired and done columns
-        if (source.droppableId === 'expired' || source.droppableId === 'done') {
+        // Prevent dragging expired tasks and dragging tasks to the expired or done column
+        if (source.droppableId === 'expired' || destination.droppableId === 'expired' || destination.droppableId === 'done' || source.droppableId === 'done') {
             return;
         }
 
-        // Prevent dragging tasks to the expired or done columns
-        if (destination.droppableId === 'expired' || destination.droppableId === 'done') {
-            return;
-        }
-
-        if (destination.droppableId === source.droppableId && destination.index === source.index) {
+        if (destination.droppableId === source.droppableId) {
             return;
         }
 
@@ -186,7 +216,6 @@ const TaskList = () => {
 
         try {
             await axios.put(`http://localhost:5251/api/tasks/${movedTask.id}`, movedTask);
-            fetchTasks(); // Fetch updated tasks after drop
         } catch (error) {
             console.error('Error updating task status on the server:', error);
         }
@@ -201,43 +230,31 @@ const TaskList = () => {
     };
 
     const analyzeSchedule = async () => {
+        
         try {
+
             const apiKey = process.env.REACT_APP_GEMINI_API_KEY; // Use environment variable
             if (!apiKey) {
                 throw new Error('API key is missing');
             }
             const prompt = generatePrompt(tasks);
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+            console.log('You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.\n' + prompt);
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.REACT_APP_GEMINI_API_KEY}`;
             const headers = {
                 'Content-Type': 'application/json',
             };
 
             const data = {
                 contents: [
-                    {
-                        parts: [{ text: 'You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.\n' + prompt }],
-                    },
+                {
+                    parts: [{ text: 'You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.\n' + prompt }],
+                },
                 ],
             };
 
             const res = await axios.post(apiUrl, data, { headers });
             const generatedText = res.data.candidates[0].content.parts[0].text;
-
-            const formattedFeedback = generatedText
-                .replace(/\*\*Overview:\*\*/g, '<h3>Overview:</h3>')
-                .replace(/\*\*Expired Task:\*\*/g, '<h3>Expired Task:</h3>')
-                .replace(/\*\*To-Do Tasks:\*\*/g, '<h3>To-Do Tasks:</h3>')
-                .replace(/\*\*Doing Tasks:\*\*/g, '<h3>Doing Tasks:</h3>')
-                .replace(/\*\*Warnings:\*\*/g, '<h3 class="warnings">Warnings:</h3>')
-                .replace(/\*\*Prioritization Recommendations:\*\*/g, '<h3 class="recommendations">Prioritization Recommendations:</h3>')
-                .replace(/\*\*Task ID:\*\*/g, '<span class="task-id">Task ID:</span>')
-                .replace(/\*\*Due Date:\*\*/g, '<span class="due-date">Due Date:</span>')
-                .replace(/\*\*Priority:\*\*/g, '<span class="priority">Priority:</span>')
-                .replace(/\*\*Feedback:\*\*/g, '<span class="feedback">Feedback:</span>')
-                .replace(/\n/g, '<br>');
-
-            setAnalysisFeedback(formattedFeedback);
-            setIsExpanded(false); // Collapse the feedback initially
+            setAnalysisFeedback(generatedText);
         } catch (error) {
             console.error('Error analyzing schedule:', error);
             setAnalysisFeedback('Failed to analyze schedule. Please try again later.');
@@ -280,134 +297,166 @@ const TaskList = () => {
     }, {});
 
     return (
-        <div className="task-list-container">
-            <h2 className="task-list-title">Task List</h2>
-            <button className="create-task-button" onClick={() => setShowTaskForm(true)}>Create Task</button>
-            <button className="analyze-schedule-button" onClick={analyzeSchedule}>Analyze Schedule</button>
+        <Box sx={{ padding: 3 }}>
+            <Typography variant="h4" gutterBottom>Task List</Typography>
+            
+            <Box sx={{ display: 'flex', gap: 2, marginBottom: 2 }}>
+                <Button 
+                    variant="contained" 
+                    onClick={() => setShowTaskForm(true)}
+                >
+                    Create Task
+                </Button>
+                <Button 
+                    variant="outlined" 
+                    onClick={analyzeSchedule}
+                >
+                    Analyze Schedule
+                </Button>
+            </Box>
+
             {analysisFeedback && (
-                <div className="analysis-feedback">
-                    <div dangerouslySetInnerHTML={{ __html: isExpanded ? analysisFeedback : analysisFeedback.substring(0, 200) + '...' }}></div>
-                    <button onClick={() => setIsExpanded(!isExpanded)} className="expand-collapse-btn">
-                        {isExpanded ? 'Collapse' : 'Expand'}
-                    </button>
-                </div>
+                <TaskManagementFeedback analysisFeedback={analysisFeedback} />
             )}
-            {showTaskForm && (
-                <div className="modal">
-                    <div className="modal-content">
-                        <span className="close-button" onClick={() => setShowTaskForm(false)}>&times;</span>
-                        <TaskForm onTaskCreated={handleTaskCreated} onTaskUpdated={handleTaskUpdated} task={editingTask} />
-                    </div>
-                </div>
-            )}
-            <div className="task-filters">
-                <input
-                    type="text"
-                    placeholder="Search tasks..."
+
+            <Dialog open={showTaskForm} onClose={() => setShowTaskForm(false)}>
+                <DialogTitle>
+                    {editingTask ? 'Edit Task' : 'Create Task'}
+                </DialogTitle>
+                <DialogContent>
+                    <TaskForm 
+                        onTaskCreated={handleTaskCreated} 
+                        onTaskUpdated={handleTaskUpdated} 
+                        task={editingTask} 
+                    />
+                </DialogContent>
+            </Dialog>
+
+            <Box sx={{ display: 'flex', gap: 2, marginBottom: 2 }}>
+                <TextField
+                    label="Search tasks"
+                    variant="outlined"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="task-search"
+                    fullWidth
                 />
-                <select
+                <Select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="task-filter"
+                    variant="outlined"
                 >
-                    <option value="all">All</option>
-                    <option value="Todo">Todo</option>
-                    <option value="Doing">Doing</option>
-                    <option value="Done">Done</option>
-                    <option value="Expired">Expired</option>
-                </select>
-                <select
+                    <MenuItem value="all">All Status</MenuItem>
+                    <MenuItem value="Todo">Todo</MenuItem>
+                    <MenuItem value="Doing">Doing</MenuItem>
+                    <MenuItem value="Done">Done</MenuItem>
+                    <MenuItem value="Expired">Expired</MenuItem>
+                </Select>
+                <Select
                     value={filterPriority}
                     onChange={(e) => setFilterPriority(e.target.value)}
-                    className="task-filter"
+                    variant="outlined"
                 >
-                    <option value="all">All</option>
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                </select>
-                <select
+                    <MenuItem value="all">All Priorities</MenuItem>
+                    <MenuItem value="Low">Low</MenuItem>
+                    <MenuItem value="Medium">Medium</MenuItem>
+                    <MenuItem value="High">High</MenuItem>
+                </Select>
+                <Select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value)}
-                    className="task-sort"
+                    variant="outlined"
                 >
-                    <option value="asc">Due Date Ascending</option>
-                    <option value="desc">Due Date Descending</option>
-                </select>
-            </div>
+                    <MenuItem value="asc">Due Date Ascending</MenuItem>
+                    <MenuItem value="desc">Due Date Descending</MenuItem>
+                </Select>
+            </Box>
+
             <DragDropContext onDragEnd={onDragEnd}>
-                <div className="task-columns">
+                <Grid container spacing={2}>
                     {['expired', 'todo', 'doing', 'done'].map((status) => (
-                        <Droppable droppableId={status} key={status}>
-                            {(provided) => (
-                                <div
-                                    ref={provided.innerRef}
-                                    {...provided.droppableProps}
-                                    className={`task-column ${status}`}
+                    <Grid item xs={12} sm={6} md={3} key={status}>
+                        <Droppable droppableId={status}>
+                        {(provided) => (
+                            <Box 
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            sx={{ 
+                                border: '1px solid', 
+                                borderColor: columnColors[status].border, 
+                                borderRadius: 2, 
+                                padding: 2,
+                                backgroundColor: columnColors[status].background
+                            }}
+                            >
+                            <Typography variant="h6">
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </Typography>
+                            {sortedTasks[status].map((task, index) => (
+                                <Draggable 
+                                key={task.id} 
+                                draggableId={task.id} 
+                                index={index} 
+                                isDragDisabled={status === 'expired'}
                                 >
-                                    <h3>{status.charAt(0).toUpperCase() + status.slice(1)}</h3>
-                                    {sortedTasks[status].map((task, index) => (
-                                        <Draggable key={task.id} draggableId={task.id} index={index} isDragDisabled={status === 'expired' || status === 'done'}>
-                                            {(provided) => (
-                                                <div
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
-                                                    className="task-item"
-                                                >
-                                                    <div className="task-details">
-                                                        <strong>{task.title}</strong> - {task.description}
-                                                    </div>
-                                                    <div className="due-date">
-                                                        <span>Due: {formatDueDate(task.dueDate)}</span>
-                                                    </div>
-                                                    <div className="priority">
-                                                        <span>Priority: {task.priority}</span>
-                                                    </div>
-                                                    <div className="completed">
-                                                        <label>
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={task.isCompleted}
-                                                                onChange={(e) =>
-                                                                    handleCheckboxChange(task.id, e.target.checked)
-                                                                }
-                                                            />
-                                                            {task.isCompleted ? 'Completed' : 'Incomplete'}
-                                                        </label>
-                                                    </div>
-                                                    <div className="task-buttons">
-                                                        <button
-                                                            onClick={() => handleEditTask(task)}
-                                                            className="update-btn"
-                                                        >
-                                                            Update
-                                                        </button>
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDeleteTask(task.id);
-                                                            }}
-                                                            className="delete-btn"
-                                                        >
-                                                            Delete
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                </div>
-                            )}
+                                {(provided) => (
+                                    <Card 
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    sx={{ 
+                                        marginBottom: 1,
+                                        boxShadow: 2
+                                    }}
+                                    onClick={() => handleEditTask(task)}
+                                    >
+                                    <CardContent>
+                                        <Typography variant="subtitle1">
+                                        {task.title}
+                                        </Typography>
+                                        <Typography variant="body2">
+                                        {task.description}
+                                        </Typography>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <Typography variant="caption">
+                                            Due: {formatDueDate(task.dueDate)}
+                                        </Typography>
+                                        <Typography variant="caption">
+                                            Priority: {task.priority}
+                                        </Typography>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <FormControlLabel
+                                            control={
+                                            <Checkbox
+                                                checked={task.isCompleted}
+                                                onChange={(e) => handleCheckboxChange(task.id, e.target.checked)}
+                                            />
+                                            }
+                                            label={task.isCompleted ? 'Completed' : 'Incomplete'}
+                                        />
+                                        <IconButton 
+                                            onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteTask(task.id);
+                                            }}
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                        </Box>
+                                    </CardContent>
+                                    </Card>
+                                )}
+                                </Draggable>
+                            ))}
+                            {provided.placeholder}
+                            </Box>
+                        )}
                         </Droppable>
+                    </Grid>
                     ))}
-                </div>
+                </Grid>
             </DragDropContext>
-        </div>
+        </Box>
     );
 };
 
