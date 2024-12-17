@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import {
   Container,
@@ -12,12 +12,14 @@ import {
   InputLabel,
   FormControl,
 } from '@mui/material';
+import { UserContext } from '../context/UserContext';
 
 const TaskForm = ({ onTaskCreated, onTaskUpdated, task }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
+  const { user } = useContext(UserContext);
 
   useEffect(() => {
     if (task) {
@@ -60,6 +62,7 @@ const TaskForm = ({ onTaskCreated, onTaskUpdated, task }) => {
       statusEnum: statusEnum,
       isCompleted: task ? task.isCompleted : false,
       priority,
+      userId: user ? user.uid : null, // Include user ID
     };
 
     try {

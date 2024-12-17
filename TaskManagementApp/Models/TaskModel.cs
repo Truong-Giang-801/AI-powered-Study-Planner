@@ -10,6 +10,9 @@ namespace TaskManagementApp.Models
         public string Id { get; set; } = string.Empty;
 
         [FirestoreProperty]
+        public string UserId { get; set; } = string.Empty;
+
+        [FirestoreProperty]
         public string Title { get; set; } = string.Empty;
 
         [FirestoreProperty]

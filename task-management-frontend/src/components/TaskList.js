@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { 
     Grid, 
@@ -21,6 +21,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import TaskForm from './TaskForm';
 import TaskManagementFeedback from './TaskManagementFeedback';
+import { UserContext } from '../context/UserContext';
+
 const columnColors = {
     expired: { 
       background: 'rgba(255, 0, 0, 0.1)', 
@@ -54,9 +56,12 @@ const TaskList = () => {
     const [filterPriority, setFilterPriority] = useState('all');
     const [sortOrder, setSortOrder] = useState('asc');
     const [analysisFeedback, setAnalysisFeedback] = useState('');
+    const { user } = useContext(UserContext);
 
     useEffect(() => {
         const fetchTasks = async () => {
+            if (!user) return;
+
             try {
                 const response = await axios.get('http://localhost:5251/api/tasks', {
                     headers: {
@@ -73,6 +78,8 @@ const TaskList = () => {
                 };
 
                 for (const task of response.data) {
+                    if (task.userId !== user.uid) continue;
+
                     const dueDate = new Date(task.dueDate);
                     if (!task.isCompleted && dueDate < today) {
                         task.status = 'Expired';
@@ -102,7 +109,7 @@ const TaskList = () => {
         };
 
         fetchTasks();
-    }, []);
+    }, [user]);
 
     const formatDueDate = (dueDate) => {
         const date = new Date(dueDate);

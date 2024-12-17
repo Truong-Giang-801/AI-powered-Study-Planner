@@ -1,20 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import axios from "axios";
 import { Container, Box, Typography, CircularProgress, Alert } from "@mui/material";
+import { UserContext } from "../context/UserContext";
 
 const Calendar = () => {
   const [events, setEvents] = useState([]);
   const [error, setError] = useState(null);
+  const { user } = useContext(UserContext);
 
   // Fetch tasks from API
   useEffect(() => {
     const fetchTasks = async () => {
+      if (!user) return;
+
       try {
         const response = await axios.get("http://localhost:5251/api/tasks");
         const taskEvents = response.data.map(async (task) => {
+          if (task.userId !== user.uid) return null;
+
           const dueDate = new Date(task.dueDate);
           const today = new Date();
           let status = task.status;
@@ -60,7 +66,7 @@ const Calendar = () => {
 
         // Wait for all tasks to be processed before setting the state
         const processedTasks = await Promise.all(taskEvents);
-        setEvents(processedTasks);
+        setEvents(processedTasks.filter(event => event !== null));
       } catch (error) {
         console.error("Error fetching tasks:", error);
         setError("Failed to load tasks. Please try again later.");
@@ -68,7 +74,7 @@ const Calendar = () => {
     };
 
     fetchTasks();
-  }, []);
+  }, [user]);
 
   // Handle drag and drop event to update status
   const handleEventDrop = async (info) => {
