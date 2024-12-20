@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
-import {
-    Grid,
-    Box,
-    Button,
-    Typography,
-    Card,
-    CardContent,
-    TextField,
-    Select,
-    MenuItem,
+import { 
+    Grid, 
+    Box, 
+    Button, 
+    Typography, 
+    Card, 
+    CardContent, 
+    TextField, 
+    Select, 
+    MenuItem, 
     Dialog,
     DialogTitle,
     DialogContent,
-    FormControlLabel,
-    Checkbox,
-    IconButton
+    FormControlLabel, 
+    Checkbox, 
+    IconButton 
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -25,21 +25,21 @@ import TaskManagementFeedback from './TaskManagementFeedback';
 import { UserContext } from '../context/UserContext';
 
 const columnColors = {
-    expired: {
-        background: 'rgba(255, 0, 0, 0.1)',
-        border: 'rgba(255, 0, 0, 0.3)'
+    expired: { 
+      background: 'rgba(255, 0, 0, 0.1)', 
+      border: 'rgba(255, 0, 0, 0.3)' 
     },
-    todo: {
-        background: 'rgba(0, 0, 255, 0.1)',
-        border: 'rgba(0, 0, 255, 0.3)'
+    todo: { 
+      background: 'rgba(0, 0, 255, 0.1)', 
+      border: 'rgba(0, 0, 255, 0.3)' 
     },
-    doing: {
-        background: 'rgba(255, 165, 0, 0.1)',
-        border: 'rgba(255, 165, 0, 0.3)'
+    doing: { 
+      background: 'rgba(255, 165, 0, 0.1)', 
+      border: 'rgba(255, 165, 0, 0.3)' 
     },
-    done: {
-        background: 'rgba(0, 255, 0, 0.1)',
-        border: 'rgba(0, 255, 0, 0.3)'
+    done: { 
+      background: 'rgba(0, 255, 0, 0.1)', 
+      border: 'rgba(0, 255, 0, 0.3)' 
     }
 };
 
@@ -101,6 +101,8 @@ const TaskList = () => {
                     } else if (task.statusEnum === 3) {
                         categorizedTasks.done.push(task);
                     }
+                    else
+                        categorizedTasks.todo.push(task);
                 }
 
                 setTasks(categorizedTasks);
@@ -116,12 +118,18 @@ const TaskList = () => {
         const date = new Date(dueDate);
         return date.toLocaleDateString('en-US');
     };
-
+    const updateTaskOnServer = async (task) => {
+        try {
+            await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, task);
+        } catch (error) {
+            console.error('Error updating task on the server:', error);
+        }
+    };
     const handleCheckboxChange = async (taskId, isChecked) => {
         try {
             const updatedTasks = { ...tasks };
             let updatedTask;
-
+    
             for (let status in updatedTasks) {
                 const taskIndex = updatedTasks[status].findIndex(task => task.id === taskId);
                 if (taskIndex !== -1) {
@@ -130,32 +138,35 @@ const TaskList = () => {
                     break;
                 }
             }
-
+    
             if (updatedTask) {
+                const today = new Date();
+                const dueDate = new Date(updatedTask.dueDate);
+    
                 updatedTask.isCompleted = isChecked;
-                updatedTask.status = isChecked ? 'Done' : 'Todo';
-                updatedTask.statusEnum = isChecked ? 3 : 1;
-
                 if (isChecked) {
+                    updatedTask.status = 'Done';
+                    updatedTask.statusEnum = 3;
                     updatedTasks.done.push(updatedTask);
                 } else {
-                    updatedTasks.todo.push(updatedTask);
+                    if (dueDate < today) {
+                        updatedTask.status = 'Expired';
+                        updatedTask.statusEnum = 0;
+                        updatedTasks.expired.push(updatedTask);
+                    } else {
+                        updatedTask.status = 'Todo';
+                        updatedTask.statusEnum = 1;
+                        updatedTasks.todo.push(updatedTask);
+                    }
                 }
-
+    
                 setTasks(updatedTasks);
-
-                await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${taskId}`, {
-                    ...updatedTask,
-                    isCompleted: isChecked,
-                    status: updatedTask.status,
-                    statusEnum: updatedTask.statusEnum,
-                });
+                await updateTaskOnServer(updatedTask);
             }
         } catch (error) {
             console.error('Error updating task:', error);
         }
     };
-
     const handleDeleteTask = async (taskId) => {
         try {
             setTasks(prevTasks => {
@@ -165,16 +176,29 @@ const TaskList = () => {
                 }
                 return updatedTasks;
             });
-
+    
             await axios.delete(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${taskId}`);
         } catch (error) {
             console.error('Error deleting task:', error);
         }
     };
 
-    const handleEditTask = (task) => {
-        setEditingTask(task);
-        setShowTaskForm(true);
+    const handleEditTask = async (updatedTask) => {
+        try {
+            const updatedTasks = { ...tasks };
+            for (let status in updatedTasks) {
+                const taskIndex = updatedTasks[status].findIndex(task => task.id === updatedTask.id);
+                if (taskIndex !== -1) {
+                    updatedTasks[status][taskIndex] = updatedTask;
+                    break;
+                }
+            }
+    
+            setTasks(updatedTasks);
+            await updateTaskOnServer(updatedTask);
+        } catch (error) {
+            console.error('Error editing task:', error);
+        }
     };
 
     const handleTaskUpdated = (updatedTask) => {
@@ -214,14 +238,14 @@ const TaskList = () => {
         destinationColumn.splice(destination.index, 0, movedTask);
 
         movedTask.statusEnum = destination.droppableId === 'todo' ? 1 :
-            destination.droppableId === 'doing' ? 2 : 3;
+                               destination.droppableId === 'doing' ? 2 : 3;
 
         setTasks({
             ...tasks,
             [source.droppableId]: sourceColumn,
             [destination.droppableId]: destinationColumn,
         });
-
+            
         try {
             await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${movedTask.id}`, movedTask);
         } catch (error) {
@@ -238,7 +262,7 @@ const TaskList = () => {
     };
 
     const analyzeSchedule = async () => {
-
+        
         try {
 
             const apiKey = process.env.REACT_APP_GEMINI_API_KEY; // Use environment variable
@@ -246,7 +270,7 @@ const TaskList = () => {
                 throw new Error('API key is missing');
             }
             const prompt = generatePrompt(tasks);
-            console.log('You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations.\n' + prompt);
+            console.log('You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.\n' + prompt);
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.REACT_APP_GEMINI_API_KEY}`;
             const headers = {
                 'Content-Type': 'application/json',
@@ -254,9 +278,9 @@ const TaskList = () => {
 
             const data = {
                 contents: [
-                    {
-                        parts: [{ text: 'You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations.\n' + prompt }],
-                    },
+                {
+                    parts: [{ text: 'You are a task management assistant. Analyze the following tasks and provide feedback including warnings about tight schedules and prioritization recommendations for balance and focus.\n' + prompt }],
+                },
                 ],
             };
 
@@ -307,16 +331,16 @@ const TaskList = () => {
     return (
         <Box sx={{ padding: 3 }}>
             <Typography variant="h4" gutterBottom>Task List</Typography>
-
+            
             <Box sx={{ display: 'flex', gap: 2, marginBottom: 2 }}>
-                <Button
-                    variant="contained"
+                <Button 
+                    variant="contained" 
                     onClick={() => setShowTaskForm(true)}
                 >
                     Create Task
                 </Button>
-                <Button
-                    variant="outlined"
+                <Button 
+                    variant="outlined" 
                     onClick={analyzeSchedule}
                 >
                     Analyze Schedule
@@ -332,10 +356,10 @@ const TaskList = () => {
                     {editingTask ? 'Edit Task' : 'Create Task'}
                 </DialogTitle>
                 <DialogContent>
-                    <TaskForm
-                        onTaskCreated={handleTaskCreated}
-                        onTaskUpdated={handleTaskUpdated}
-                        task={editingTask}
+                    <TaskForm 
+                        onTaskCreated={handleTaskCreated} 
+                        onTaskUpdated={handleTaskUpdated} 
+                        task={editingTask} 
                     />
                 </DialogContent>
             </Dialog>
@@ -382,92 +406,92 @@ const TaskList = () => {
             <DragDropContext onDragEnd={onDragEnd}>
                 <Grid container spacing={2}>
                     {['expired', 'todo', 'doing', 'done'].map((status) => (
-                        <Grid item xs={12} sm={6} md={3} key={status}>
-                            <Droppable droppableId={status}>
+                    <Grid item xs={12} sm={6} md={3} key={status}>
+                        <Droppable droppableId={status}>
+                        {(provided) => (
+                            <Box 
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                            sx={{ 
+                                border: '1px solid', 
+                                borderColor: columnColors[status].border, 
+                                borderRadius: 2, 
+                                padding: 2,
+                                backgroundColor: columnColors[status].background
+                            }}
+                            >
+                            <Typography variant="h6">
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </Typography>
+                            {sortedTasks[status].map((task, index) => (
+                                <Draggable 
+                                key={task.id} 
+                                draggableId={task.id} 
+                                index={index} 
+                                isDragDisabled={status === 'expired'}
+                                >
                                 {(provided) => (
-                                    <Box
-                                        ref={provided.innerRef}
-                                        {...provided.droppableProps}
-                                        sx={{
-                                            border: '1px solid',
-                                            borderColor: columnColors[status].border,
-                                            borderRadius: 2,
-                                            padding: 2,
-                                            backgroundColor: columnColors[status].background
-                                        }}
+                                    <Card 
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    sx={{ 
+                                        marginBottom: 1,
+                                        boxShadow: 2
+                                    }}
                                     >
-                                        <Typography variant="h6">
-                                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                                    <CardContent>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>
+                                        {task.title}
                                         </Typography>
-                                        {sortedTasks[status].map((task, index) => (
-                                            <Draggable
-                                                key={task.id}
-                                                draggableId={task.id}
-                                                index={index}
-                                                isDragDisabled={status === 'expired'}
-                                            >
-                                                {(provided) => (
-                                                    <Card
-                                                        ref={provided.innerRef}
-                                                        {...provided.draggableProps}
-                                                        {...provided.dragHandleProps}
-                                                        sx={{
-                                                            marginBottom: 1,
-                                                            boxShadow: 2
-                                                        }}
-                                                    >
-                                                        <CardContent>
-                                                            <Typography variant="subtitle1">
-                                                                {task.title}
-                                                            </Typography>
-                                                            <Typography variant="body2">
-                                                                {task.description}
-                                                            </Typography>
-                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                                <Typography variant="caption">
-                                                                    Due: {formatDueDate(task.dueDate)}
-                                                                </Typography>
-                                                                <Typography variant="caption">
-                                                                    Priority: {task.priority}
-                                                                </Typography>
-                                                            </Box>
-                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                <FormControlLabel
-                                                                    control={
-                                                                        <Checkbox
-                                                                            checked={task.isCompleted}
-                                                                            onChange={(e) => handleCheckboxChange(task.id, e.target.checked)}
-                                                                        />
-                                                                    }
-                                                                    label={task.isCompleted ? 'Completed' : 'Incomplete'}
-                                                                />
-                                                                <IconButton
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleDeleteTask(task.id);
-                                                                    }}
-                                                                >
-                                                                    <DeleteIcon />
-                                                                </IconButton>
-                                                                <IconButton
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        handleEditTask(task);
-                                                                    }}
-                                                                >
-                                                                    <EditIcon />
-                                                                </IconButton>
-                                                            </Box>
-                                                        </CardContent>
-                                                    </Card>
-                                                )}
-                                            </Draggable>
-                                        ))}
-                                        {provided.placeholder}
-                                    </Box>
+                                        <Typography variant="body2">
+                                        {task.description}
+                                        </Typography>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                                        <Typography variant="caption">
+                                            Due: {formatDueDate(task.dueDate)}
+                                        </Typography>
+                                        <Typography variant="caption">
+                                            Priority: {task.priority}
+                                        </Typography>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <FormControlLabel
+                                            control={
+                                            <Checkbox
+                                                checked={task.isCompleted}
+                                                onChange={(e) => handleCheckboxChange(task.id, e.target.checked)}
+                                            />
+                                            }
+                                            label={task.isCompleted ? 'Completed' : 'Incomplete'}
+                                        />
+                                        <IconButton 
+                                            onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeleteTask(task.id);
+                                            }}
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                        <IconButton 
+                                            onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditTask(task);
+                                            }}
+                                        >
+                                            <EditIcon />
+                                        </IconButton>
+                                        </Box>
+                                    </CardContent>
+                                    </Card>
                                 )}
-                            </Droppable>
-                        </Grid>
+                                </Draggable>
+                            ))}
+                            {provided.placeholder}
+                            </Box>
+                        )}
+                        </Droppable>
+                    </Grid>
                     ))}
                 </Grid>
             </DragDropContext>

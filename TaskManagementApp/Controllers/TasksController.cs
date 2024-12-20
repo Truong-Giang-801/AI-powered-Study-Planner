@@ -22,11 +22,11 @@ namespace TaskManagementApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetTasks([FromQuery]int pageSize = 10, [FromQuery]int pageNumber = 1)
+        public async Task<IActionResult> GetTasks()
         {
             try
             {
-                var tasks = await _firestoreService.GetTasksAsync(pageSize, pageNumber);
+                var tasks = await _firestoreService.GetTasksAsync();
                 return Ok(tasks);
             }
             catch (Exception ex)

@@ -23,6 +23,8 @@ const Calendar = () => {
 
           const dueDate = new Date(task.dueDate);
           const today = new Date();
+          today.setHours(0, 0, 0, 0); // Set to start of today
+
           let status = task.status;
           let backgroundColor = "#f0ad4e"; // Default color for Todo
 
@@ -55,6 +57,7 @@ const Calendar = () => {
             status: status,
             statusEnum: task.statusEnum,
             isCompleted: task.isCompleted,
+            userId: task.userId,
             emoji: task.emoji || "📅", // Default emoji
             description: task.description || "No description provided.",
             backgroundColor: backgroundColor,
@@ -83,8 +86,33 @@ const Calendar = () => {
 
     const updatedTaskData = {
       ...info.event.extendedProps,
+      title: info.event.title,
       dueDate: newStart.toISOString(), // Update due date
     };
+    const pre_status = updatedTaskData.status;
+    const pre_statusEnum = updatedTaskData.statusEnum;
+    // Check if the new date is not expired
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of today
+    if (newStart >= today && pre_status === "Expired" && pre_statusEnum === 0) {
+      updatedTaskData.status = "Todo";
+      updatedTaskData.statusEnum = 1;
+      updatedTaskData.backgroundColor = "#ffc107"; // Yellow for Todo
+    } else if (newStart < today && pre_status !== "Done" ) {
+      updatedTaskData.status = "Expired";
+      updatedTaskData.statusEnum = 0;
+      updatedTaskData.backgroundColor = "#dc3545"; // Red for Expired
+    }
+    else{
+      updatedTaskData.status = info.event.extendedProps.status;
+      updatedTaskData.statusEnum = info.event.extendedProps.statusEnum;
+      if(updatedTaskData.status === "Done")
+      updatedTaskData.backgroundColor = "#28a745"; // Green for Done
+      else if(updatedTaskData.status === "Doing")
+      updatedTaskData.backgroundColor = "#007bff"; // Blue for Doing
+      else if(updatedTaskData.status === "Todo")
+      updatedTaskData.backgroundColor = "#ffc107"; // Yellow for Todo
+    }
 
     try {
       await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${taskId}`, updatedTaskData);
@@ -92,7 +120,7 @@ const Calendar = () => {
       setEvents((prevEvents) =>
         prevEvents.map((event) =>
           event.id === taskId
-            ? { ...event, start: newStart.toISOString() }
+            ? { ...event, start: newStart.toISOString(), status: updatedTaskData.status, statusEnum: updatedTaskData.statusEnum, backgroundColor: updatedTaskData.backgroundColor, borderColor: updatedTaskData.backgroundColor }
             : event
         )
       );
@@ -153,26 +181,56 @@ const Calendar = () => {
                 <Box
                   sx={{
                     display: "flex",
+                    flexDirection: "row",
                     alignItems: "center",
                     p: 0.5,
                     backgroundColor: eventInfo.event.backgroundColor,
                     borderRadius: "4px",
                     color: eventInfo.event.textColor,
                     gap: "8px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    maxWidth: "100%", // Ensures it doesn't overflow the container
                   }}
                 >
-                  <span style={{ fontSize: "1.2rem" }}>{emoji}</span>
-                  <Box>
-                    <Typography variant="subtitle2" fontWeight="bold">
+                  <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>{emoji}</span>
+                  <Box
+                    sx={{
+                      flexGrow: 1,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle2"
+                      fontWeight="bold"
+                      sx={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {eventInfo.event.title}
                     </Typography>
-                    <Typography variant="caption" display="block" color="inherit">
+                    <Typography
+                      variant="caption"
+                      display="block"
+                      color="inherit"
+                      sx={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {eventInfo.event.extendedProps.description}
                     </Typography>
                   </Box>
                 </Box>
               );
             }}
+            
             eventClick={handleEventClick}
             eventDrop={handleEventDrop}
           />

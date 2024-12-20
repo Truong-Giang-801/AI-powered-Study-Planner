@@ -17,14 +17,12 @@ namespace TaskManagementApp.Services
             _firestoreDb = FirestoreDb.Create("authentication-57a28");
         }
 
-        public async Task<List<TaskModel>> GetTasksAsync(int pageSize = 10, int pageNumber = 1)
+        public async Task<List<TaskModel>> GetTasksAsync()
         {
             try
             {
                 var tasksRef = _firestoreDb.Collection("tasks");
-                var offset = (pageNumber - 1) * pageSize;
-                var query = tasksRef.Offset(offset).Limit(pageSize);
-                var snapshot = await query.GetSnapshotAsync();
+                var snapshot = await tasksRef.GetSnapshotAsync();
                 
                 var tasks = new List<TaskModel>();
                 foreach (var document in snapshot.Documents)
@@ -34,6 +32,7 @@ namespace TaskManagementApp.Services
                         tasks.Add(document.ConvertTo<TaskModel>());
                     }
                 }
+                Console.WriteLine(tasks.Count);
                 return tasks;
             }
             catch (Exception ex)
