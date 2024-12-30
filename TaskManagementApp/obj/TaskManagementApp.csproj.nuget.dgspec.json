@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Document for Uni\\year 4\\advance web dev\\temp\\TaskManagementApp\\TaskManagementApp.csproj": {}
+    "D:\\Document for Uni\\year 4\\advance web dev\\AI plan\\TaskManagementApp\\TaskManagementApp.csproj": {}
   },
   "projects": {
-    "D:\\Document for Uni\\year 4\\advance web dev\\temp\\TaskManagementApp\\TaskManagementApp.csproj": {
+    "D:\\Document for Uni\\year 4\\advance web dev\\AI plan\\TaskManagementApp\\TaskManagementApp.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Document for Uni\\year 4\\advance web dev\\temp\\TaskManagementApp\\TaskManagementApp.csproj",
+        "projectUniqueName": "D:\\Document for Uni\\year 4\\advance web dev\\AI plan\\TaskManagementApp\\TaskManagementApp.csproj",
         "projectName": "TaskManagementApp",
-        "projectPath": "D:\\Document for Uni\\year 4\\advance web dev\\temp\\TaskManagementApp\\TaskManagementApp.csproj",
+        "projectPath": "D:\\Document for Uni\\year 4\\advance web dev\\AI plan\\TaskManagementApp\\TaskManagementApp.csproj",
         "packagesPath": "C:\\Users\\giang\\.nuget\\packages\\",
-        "outputPath": "D:\\Document for Uni\\year 4\\advance web dev\\temp\\TaskManagementApp\\obj\\",
+        "outputPath": "D:\\Document for Uni\\year 4\\advance web dev\\AI plan\\TaskManagementApp\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
+using System.Text.Json;
 using TaskManagementApp.Services;
 using Google.Cloud.Firestore;
-using System.Text.Json;
 
 namespace TaskManagementApp
 {
@@ -15,26 +15,34 @@ namespace TaskManagementApp
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddSingleton<FirebaseApp>(sp => 
+
+            // Set the environment variable for Google credentials
+            Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "Configs/serviceAccountKey_1.json");
+
+            // Initialize FirebaseApp
+            var googleCredential = GoogleCredential.FromFile("Configs/serviceAccountKey_1.json");
+            var firebaseApp = FirebaseApp.Create(new AppOptions
             {
-                var googleCredential = GoogleCredential.FromFile(
-                    "Configs/serviceAccountKey.json"
-                );
-
-                var firebaseApp = FirebaseApp.Create(new AppOptions
-                {
-                    Credential = googleCredential
-                });
-
-                Console.WriteLine($"FirebaseApp initialized successfully with ID: {firebaseApp.Name}");
-
-                // Create FirestoreDb instance using the FirebaseApp's projectId
-                var firestoreDb = FirestoreDb.Create("authentication-57a28");
-                Console.WriteLine($"FirestoreDb created successfully for project: {firebaseApp.Options.ProjectId}");
-
-                return firebaseApp;
+                Credential = googleCredential
             });
-            
+
+            Console.WriteLine($"FirebaseApp initialized successfully with ID: {firebaseApp.Name}");
+
+            // Read project ID from the service account JSON file
+            var json = File.ReadAllText("Configs/serviceAccountKey_1.json");
+            var jsonDocument = JsonDocument.Parse(json);
+            var projectId = jsonDocument.RootElement.GetProperty("project_id").GetString();
+            if (string.IsNullOrEmpty(projectId))
+            {
+                throw new InvalidOperationException("Project ID cannot be null or empty.");
+            }
+
+            // Register FirestoreDb as a singleton service
+            var firestoreDb = FirestoreDb.Create(projectId);
+            services.AddSingleton(firestoreDb);
+
+            Console.WriteLine($"FirestoreDb created successfully for project: {projectId}");
+
             services.AddSingleton<FirestoreService>();
             services.AddScoped<AuthService>();
 

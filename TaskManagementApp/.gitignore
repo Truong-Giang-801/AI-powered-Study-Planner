@@ -482,3 +482,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Ignore service account key
+Configs/serviceAccountKey_1.json
+Configs/serviceAccountKey.json

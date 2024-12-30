@@ -11,10 +11,10 @@ namespace TaskManagementApp.Services
     {
         private readonly FirestoreDb _firestoreDb;
 
-        public FirestoreService(FirebaseApp firebaseApp)
+        public FirestoreService(FirestoreDb firestoreDb)
         {
-            var projectId = firebaseApp.Options.ProjectId;
-            _firestoreDb = FirestoreDb.Create("authentication-57a28");
+            _firestoreDb = firestoreDb;
+            Console.WriteLine($"FirestoreService initialized with project ID: {_firestoreDb.ProjectId}");
         }
 
         public async Task<List<TaskModel>> GetTasksAsync()
