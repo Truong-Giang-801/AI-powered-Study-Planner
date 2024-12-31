@@ -7,7 +7,9 @@ import Timer from './components/Timer';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Register from './components/Register';
+import LinkGoogle from './components/LinkGoogle.js';
 import Header from './components/Header';
+import UnlinkGoogle from './components/UnlinkGoogle.js';
 import './styles.css';
 import { getAuth } from 'firebase/auth';
 
@@ -35,6 +37,8 @@ const App = () => {
                     <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
                     <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
                     <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
+                    <Route path="/link-google" element={user ? <LinkGoogle /> : <Navigate to="/login" />} />
+                    <Route path="/unlink-google" element={user ? <UnlinkGoogle /> : <Navigate to="/login" />} />
                     <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
                 </Routes>
             </div>

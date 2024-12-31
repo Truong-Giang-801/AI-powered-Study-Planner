@@ -1,39 +1,31 @@
 using Microsoft.AspNetCore.Mvc;
 using TaskManagementApp.Services;
 using TaskManagementApp.Models;
+using System.Threading.Tasks;
 
-[ApiController]
-[Route("api/[controller]")]
-public class AuthController : ControllerBase
+namespace TaskManagementApp.Controllers
 {
-    private readonly AuthService _authService;
-
-    public AuthController(AuthService authService)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AuthController : ControllerBase
     {
-        _authService = authService;
-    }
+        private readonly AuthService _authService;
 
-    [HttpPost("register")]
-    public async Task<IActionResult> Register(UserRegistrationDto userDto)
-    {
-        var result = await _authService.RegisterUserAsync(userDto);
-        if (!result.Success)
+        public AuthController(AuthService authService)
         {
-            return BadRequest(result.Message);
+            _authService = authService;
         }
 
-        return Ok(result);
-    }
-
-    [HttpPost("login")]
-    public async Task<IActionResult> Login(UserLoginDto userDto)
-    {
-        var result = await _authService.LoginUserAsync(userDto);
-        if (!result.Success)
+        [HttpPost("link-provider")]
+        public async Task<IActionResult> LinkProvider([FromBody] LinkProviderDto linkProviderDto)
         {
-            return Unauthorized(result.Message);
-        }
+            var result = await _authService.LinkProviderAsync(linkProviderDto.Uid, linkProviderDto.IdToken);
+            if (!result.Success)
+            {
+                return BadRequest(result.Message);
+            }
 
-        return Ok(result);
+            return Ok(result);
+        }
     }
 }

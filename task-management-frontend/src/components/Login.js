@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { auth, provider } from "../firebase";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  fetchSignInMethodsForEmail,
+} from "firebase/auth";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -17,6 +21,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  // Handle login with email and password
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -24,17 +29,39 @@ const Login = () => {
       alert("Logged in successfully!");
       navigate("/dashboard");
     } catch (error) {
-      alert(error.message);
+      alert(`Login failed: ${error.message}`);
     }
   };
 
+  // Handle login with Google
   const handleGoogleLogin = async () => {
     try {
-      await signInWithPopup(auth, provider);
-      alert("Logged in with Google!");
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      alert(`Logged in successfully with Google as ${user.email}`);
       navigate("/dashboard");
     } catch (error) {
-      alert(error.message);
+      if (error.code === "auth/account-exists-with-different-credential") {
+        const email = error.customData?.email;
+
+        if (email) {
+          try {
+            const methods = await fetchSignInMethodsForEmail(auth, email);
+            alert(
+              `This email is already associated with another sign-in method: ${methods.join(
+                ", "
+              )}. Please use that method to log in.`
+            );
+          } catch (fetchError) {
+            console.error("Failed to fetch sign-in methods:", fetchError);
+            alert("Failed to resolve sign-in conflict.");
+          }
+        }
+      } else {
+        console.error("Google login failed:", error);
+        alert(`Google login failed: ${error.message}`);
+      }
     }
   };
 

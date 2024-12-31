@@ -32,7 +32,6 @@ namespace TaskManagementApp.Services
                         tasks.Add(document.ConvertTo<TaskModel>());
                     }
                 }
-                Console.WriteLine(tasks.Count);
                 return tasks;
             }
             catch (Exception ex)
