@@ -1,4 +1,5 @@
 const firestoreService = require('../services/firestoreService');
+const { TaskModel } = require('../models/TaskModel');
 
 exports.getTasks = async (req, res) => {
   try {
@@ -29,13 +30,13 @@ exports.getTask = async (req, res) => {
 };
 
 exports.addTask = async (req, res) => {
-  const task = req.body;
-  if (!task) {
+  const taskData = req.body;
+  if (!taskData) {
     return res.status(400).send('Task cannot be null');
   }
 
   try {
-    const createdTask = await firestoreService.addTask(task);
+    const createdTask = await firestoreService.addTask(taskData);
     res.status(201).json(createdTask);
   } catch (error) {
     console.error('Error creating task:', error);
@@ -45,13 +46,13 @@ exports.addTask = async (req, res) => {
 
 exports.updateTask = async (req, res) => {
   const { id } = req.params;
-  const task = req.body;
-  if (!id || !task) {
+  const taskData = req.body;
+  if (!id || !taskData) {
     return res.status(400).send('Both ID and Task must be provided');
   }
 
   try {
-    const updatedTask = await firestoreService.updateTask(id, task);
+    const updatedTask = await firestoreService.updateTask(id, taskData);
     res.json(updatedTask);
   } catch (error) {
     console.error(`Error updating task with ID ${id}:`, error);

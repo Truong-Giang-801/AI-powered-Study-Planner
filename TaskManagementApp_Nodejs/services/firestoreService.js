@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const { TaskModel, TaskStatus, TaskPriority } = require('../models/TaskModel');
 
 if (!admin.apps.length) {
   const serviceAccountPath = require('path').resolve(__dirname, '../Configs/serviceAccountKey_.json');
@@ -22,9 +23,10 @@ class FirestoreService {
     try {
       const tasksRef = this.db.collection('tasks');
       const snapshot = await tasksRef.get();
-      const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const tasks = snapshot.docs.map(doc => TaskModel.fromFirestore(doc));
       return tasks;
     } catch (error) {
+      console.error('Error in getTasks:', error);
       throw new Error('Failed to fetch tasks');
     }
   }
@@ -36,27 +38,33 @@ class FirestoreService {
       if (!doc.exists) {
         return null;
       }
-      return { id: doc.id, ...doc.data() };
+      return TaskModel.fromFirestore(doc);
     } catch (error) {
+      console.error(`Error in getTask with ID ${id}:`, error);
       throw new Error(`Failed to fetch task with ID ${id}`);
     }
   }
 
-  async addTask(task) {
+  async addTask(taskData) {
     try {
-      const docRef = await this.db.collection('tasks').add(task);
-      return { id: docRef.id, ...task };
+      const task = new TaskModel(taskData);
+      const docRef = await this.db.collection('tasks').add(task.toFirestore());
+      task.id = docRef.id;
+      return task;
     } catch (error) {
+      console.error('Error in addTask:', error);
       throw new Error('Failed to add task');
     }
   }
 
-  async updateTask(id, task) {
+  async updateTask(id, taskData) {
     try {
+      const task = new TaskModel({ id, ...taskData });
       const docRef = this.db.collection('tasks').doc(id);
-      await docRef.set(task, { merge: true });
-      return { id, ...task };
+      await docRef.set(task.toFirestore(), { merge: true });
+      return task;
     } catch (error) {
+      console.error(`Error in updateTask with ID ${id}:`, error);
       throw new Error(`Failed to update task with ID ${id}`);
     }
   }
@@ -67,6 +75,7 @@ class FirestoreService {
       await docRef.delete();
       return true;
     } catch (error) {
+      console.error(`Error in deleteTask with ID ${id}:`, error);
       throw new Error(`Failed to delete task with ID ${id}`);
     }
   }

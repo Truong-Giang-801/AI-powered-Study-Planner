@@ -25,7 +25,7 @@ const TaskForm = ({ onTaskCreated, onTaskUpdated, task }) => {
     if (task) {
       setTitle(task.title);
       setDescription(task.description);
-      setDueDate(task.dueDate.split('T')[0]); // Format date for input[type="date"]
+      setDueDate(new Date(task.dueDate._seconds * 1000).toISOString().split('T')[0]); // Format date for input[type="date"]
       setPriority(task.priority);
     }
   }, [task]);
@@ -57,7 +57,10 @@ const TaskForm = ({ onTaskCreated, onTaskUpdated, task }) => {
     const newTask = {
       title,
       description,
-      dueDate: new Date(dueDate).toISOString(),
+      dueDate: {
+        _seconds: Math.floor(new Date(dueDate).getTime() / 1000),
+        _nanoseconds: 0,
+      },
       status: mapStatusEnumToStatus(statusEnum),
       statusEnum: statusEnum,
       isCompleted: task ? task.isCompleted : false,
@@ -70,9 +73,9 @@ const TaskForm = ({ onTaskCreated, onTaskUpdated, task }) => {
         await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, newTask);
         onTaskUpdated({ ...newTask, id: task.id });
       } else {
-        await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`, newTask);
+        const response = await axios.post(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`, newTask);
         alert('Task created successfully!');
-        onTaskCreated(newTask);
+        onTaskCreated({ ...newTask, id: response.data.id });
       }
       // Clear form
       setTitle('');
