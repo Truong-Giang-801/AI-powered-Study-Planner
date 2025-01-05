@@ -17,10 +17,10 @@ namespace TaskManagementApp
             services.AddControllers();
 
             // Set the environment variable for Google credentials
-            Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "Configs/serviceAccountKey_1.json");
+            Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", "Configs/serviceAccountKey.json");
 
             // Initialize FirebaseApp
-            var googleCredential = GoogleCredential.FromFile("Configs/serviceAccountKey_1.json");
+            var googleCredential = GoogleCredential.FromFile("Configs/serviceAccountKey.json");
             var firebaseApp = FirebaseApp.Create(new AppOptions
             {
                 Credential = googleCredential
@@ -29,7 +29,7 @@ namespace TaskManagementApp
             Console.WriteLine($"FirebaseApp initialized successfully with ID: {firebaseApp.Name}");
 
             // Read project ID from the service account JSON file
-            var json = File.ReadAllText("Configs/serviceAccountKey_1.json");
+            var json = File.ReadAllText("Configs/serviceAccountKey.json");
             var jsonDocument = JsonDocument.Parse(json);
             var projectId = jsonDocument.RootElement.GetProperty("project_id").GetString();
             if (string.IsNullOrEmpty(projectId))

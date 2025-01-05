@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext,useCallback  } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -15,75 +15,76 @@ const Calendar = () => {
   const [isFocusTimerOpen, setIsFocusTimerOpen] = useState(false); // State to control the focus timer modal
   const [isTaskInfoOpen, setIsTaskInfoOpen] = useState(false); // State to control the task information dialog
 
-    const fetchTasks = async () => {
-      if (!user) return;
+  // Memoize the fetchTasks function
+  const fetchTasks = useCallback(async () => {
+    if (!user) return;
 
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`);
-        const taskEvents = response.data.map(async (task) => {
-          if (task.userId !== user.uid) return null;
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`);
+      const taskEvents = response.data.map(async (task) => {
+        if (task.userId !== user.uid) return null;
 
-          const dueDate = new Date(task.dueDate);
-          const today = new Date();
-          today.setHours(0, 0, 0, 0); // Set to start of today
+        const dueDate = new Date(task.dueDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set to start of today
 
-          let status = task.status;
-          let backgroundColor = "#f0ad4e"; // Default color for Todo
+        let status = task.status;
+        let backgroundColor = "#f0ad4e"; // Default color for Todo
 
-          if (task.isCompleted) {
-            backgroundColor = "#28a745"; // Green for Done
-          } else if (dueDate < today) {
-            status = "Expired";
-            backgroundColor = "#dc3545"; // Red for Expired
+        if (task.isCompleted) {
+          backgroundColor = "#28a745"; // Green for Done
+        } else if (dueDate < today) {
+          status = "Expired";
+          backgroundColor = "#dc3545"; // Red for Expired
 
-            // Update the task status to "Expired" in the backend
-            try {
-              await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, {
-                ...task,
-                status: "Expired",
-                statusEnum: 0, // 0 is the enum value for Expired
-              });
-            } catch (error) {
-              console.error("Error updating task status to Expired:", error);
-            }
-          } else if (status === "Doing") {
-            backgroundColor = "#007bff"; // Blue for Doing
-          } else if (status === "Todo") {
-            backgroundColor = "#ffc107"; // Yellow for Todo
+          // Update the task status to "Expired" in the backend
+          try {
+            await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, {
+              ...task,
+              status: "Expired",
+              statusEnum: 0, // 0 is the enum value for Expired
+            });
+          } catch (error) {
+            console.error("Error updating task status to Expired:", error);
           }
+        } else if (status === "Doing") {
+          backgroundColor = "#007bff"; // Blue for Doing
+        } else if (status === "Todo") {
+          backgroundColor = "#ffc107"; // Yellow for Todo
+        }
 
-          return {
-            id: task.id,
-            title: task.title,
-            start: dueDate.toISOString(),
-            dueDate: dueDate,
-            status: status,
-            statusEnum: task.statusEnum,
-            isCompleted: task.isCompleted,
-            userId: task.userId,
-            emoji: task.emoji || "📅", // Default emoji
-            description: task.description || "No description provided.",
-            backgroundColor: backgroundColor,
-            borderColor: backgroundColor,
-            textColor: "#ffffff",
-            priority: task.priority,
-          };
-        });
+        return {
+          id: task.id,
+          title: task.title,
+          start: dueDate.toISOString(),
+          dueDate: dueDate,
+          status: status,
+          statusEnum: task.statusEnum,
+          isCompleted: task.isCompleted,
+          userId: task.userId,
+          emoji: task.emoji || "📅", // Default emoji
+          description: task.description || "No description provided.",
+          backgroundColor: backgroundColor,
+          borderColor: backgroundColor,
+          textColor: "#ffffff",
+          priority: task.priority,
+        };
+      });
 
-        // Wait for all tasks to be processed before setting the state
-        const processedTasks = await Promise.all(taskEvents);
-        setEvents(processedTasks.filter(event => event !== null));
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-        setError("Failed to load tasks. Please try again later.");
-      }
-    };
+      // Wait for all tasks to be processed before setting the state
+      const processedTasks = await Promise.all(taskEvents);
+      setEvents(processedTasks.filter((event) => event !== null));
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      setError("Failed to load tasks. Please try again later.");
+    }
+  }, [user]); // Memoize the function with `user` as a dependency
 
-   // Move fetchTasks call to its own useEffect
+  // UseEffect to fetch tasks
   useEffect(() => {
     fetchTasks();
-  }, [user]);
-
+  }, [fetchTasks]); 
+  
   // Handle event click
   const handleEventClick = (info) => {
     const newStart = info.event.start;
