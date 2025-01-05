@@ -10,6 +10,7 @@ import Register from './components/Register';
 import LinkGoogle from './components/LinkGoogle.js';
 import Header from './components/Header';
 import UnlinkGoogle from './components/UnlinkGoogle.js';
+import Profile from './components/Profile.js';
 import './styles.css';
 import { getAuth } from 'firebase/auth';
 
@@ -35,6 +36,8 @@ const App = () => {
                     <Route path="/create-task" element={user ? <TaskForm /> : <Navigate to="/login" />} />
                     <Route path="/timer" element={user ? <Timer /> : <Navigate to="/login" />} />
                     <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+                    <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
+
                     <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login />} />
                     <Route path="/register" element={user ? <Navigate to="/dashboard" /> : <Register />} />
                     <Route path="/link-google" element={user ? <LinkGoogle /> : <Navigate to="/login" />} />

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { auth } from '../firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { auth, db } from "../firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { setDoc, doc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 import {
   Container,
   TextField,
@@ -9,21 +10,33 @@ import {
   Typography,
   Box,
   Stack,
-} from '@mui/material';
+} from "@mui/material";
 
 const Register = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      alert('Registered successfully!');
-      navigate('/login'); // Navigate to login page
+      // Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
+
+      // Add user document to Firestore with default userType
+      await setDoc(doc(db, "users", userId), {
+        userId,
+        userType: "normal", // Default role for new users
+        email, // Store the email for reference
+        createdAt: new Date().toISOString(), // Timestamp for account creation
+      });
+
+      alert("Registered successfully!");
+      navigate("/login"); // Navigate to the login page after successful registration
     } catch (error) {
-      alert(error.message);
+      console.error("Registration error:", error);
+      alert("Registration failed: " + error.message);
     }
   };
 
@@ -33,10 +46,10 @@ const Register = () => {
         sx={{
           mt: 8,
           p: 4,
-          border: '1px solid #ddd',
-          borderRadius: '12px',
+          border: "1px solid #ddd",
+          borderRadius: "12px",
           boxShadow: 3,
-          backgroundColor: 'white',
+          backgroundColor: "white",
         }}
       >
         <Typography variant="h4" component="h1" gutterBottom align="center">
@@ -73,18 +86,6 @@ const Register = () => {
             </Button>
           </Stack>
         </form>
-
-        <Typography variant="body2" align="center" sx={{ mt: 3 }}>
-          Already have an account?{' '}
-          <Button
-            component="a"
-            href="/login"
-            sx={{ textTransform: 'none', p: 0, m: 0 }}
-            color="primary"
-          >
-            Login here
-          </Button>
-        </Typography>
       </Box>
     </Container>
   );

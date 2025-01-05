@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { auth, provider } from "../firebase";
+import { auth, provider, db } from "../firebase";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
   fetchSignInMethodsForEmail,
 } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -25,11 +26,11 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("Logged in successfully!");
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      alert(`Welcome back, ${userCredential.user.email}!`);
       navigate("/dashboard");
     } catch (error) {
-      alert(`Login failed: ${error.message}`);
+      handleAuthError(error);
     }
   };
 
@@ -39,7 +40,17 @@ const Login = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      alert(`Logged in successfully with Google as ${user.email}`);
+      // Check if user exists in Firestore, if not, create one
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, "users", user.uid), {
+          email: user.email,
+          userType: "normal",
+          createdAt: new Date(),
+        });
+      }
+
+      alert(`Welcome, ${user.email}!`);
       navigate("/dashboard");
     } catch (error) {
       if (error.code === "auth/account-exists-with-different-credential") {
@@ -59,9 +70,27 @@ const Login = () => {
           }
         }
       } else {
-        console.error("Google login failed:", error);
-        alert(`Google login failed: ${error.message}`);
+        handleAuthError(error);
       }
+    }
+  };
+
+  // Handle Firebase Auth errors
+  const handleAuthError = (error) => {
+    switch (error.code) {
+      case "auth/user-not-found":
+        alert("No account found with this email. Please register.");
+        break;
+      case "auth/wrong-password":
+        alert("Incorrect password. Please try again.");
+        break;
+      case "auth/too-many-requests":
+        alert("Too many login attempts. Please try again later.");
+        break;
+      default:
+        alert(`Login failed: ${error.message}`);
+        console.error("Login error:", error);
+        break;
     }
   };
 

@@ -1,12 +1,13 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, Button, Container, Box } from '@mui/material';
+import { UserContext } from '../context/UserContext';
 
-const Header = ({ user }) => {
+const Header = () => {
     const navigate = useNavigate();
     const auth = getAuth();
+    const { user } = useContext(UserContext);
 
     const handleLogout = async () => {
         try {
@@ -29,6 +30,7 @@ const Header = ({ user }) => {
                         <Button color="inherit" component={Link} to="/calendar">Calendar</Button>
                         <Button color="inherit" component={Link} to="/link-google">Link Google Account</Button>
                         <Button color="inherit" component={Link} to="/unlink-google">Unlink Google Account</Button>
+                        <Button color="inherit" component={Link} to="/profile">Profile</Button>
                     </Box>
 
                     {/* Right side - User greeting and logout */}
@@ -38,7 +40,7 @@ const Header = ({ user }) => {
                             <Button color="inherit" onClick={handleLogout}>Logout</Button>
                         </Box>
                     ) : (
-                        <Box />
+                        <Button color="inherit" component={Link} to="/login">Login</Button>
                     )}
                 </Toolbar>
             </Container>
