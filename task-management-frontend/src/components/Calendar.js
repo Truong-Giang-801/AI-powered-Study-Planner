@@ -3,16 +3,18 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import axios from "axios";
-import { Container, Box, Typography, CircularProgress, Alert } from "@mui/material";
+import { Container, Box, Typography, CircularProgress, Alert, Button, Dialog, DialogContent, DialogActions } from "@mui/material";
 import { UserContext } from "../context/UserContext";
+import FocusTimer from "./FocusTimer"; // Import the new component
 
 const Calendar = () => {
   const [events, setEvents] = useState([]);
   const [error, setError] = useState(null);
   const { user } = useContext(UserContext);
+  const [selectedTask, setSelectedTask] = useState(null); // State to store the selected task
+  const [isFocusTimerOpen, setIsFocusTimerOpen] = useState(false); // State to control the focus timer modal
+  const [isTaskInfoOpen, setIsTaskInfoOpen] = useState(false); // State to control the task information dialog
 
-  // Fetch tasks from API
-  useEffect(() => {
     const fetchTasks = async () => {
       if (!user) return;
 
@@ -54,6 +56,7 @@ const Calendar = () => {
             id: task.id,
             title: task.title,
             start: dueDate.toISOString(),
+            dueDate: dueDate,
             status: status,
             statusEnum: task.statusEnum,
             isCompleted: task.isCompleted,
@@ -76,8 +79,27 @@ const Calendar = () => {
       }
     };
 
+   // Move fetchTasks call to its own useEffect
+  useEffect(() => {
     fetchTasks();
   }, [user]);
+
+  // Handle event click
+  const handleEventClick = (info) => {
+    const newStart = info.event.start;
+    setSelectedTask({
+      ...info.event.extendedProps,
+      title: info.event.title,
+      dueDate: newStart.toISOString(), // Update due date
+      id: info.event.id,
+    });
+    console.log("Task clicked:", selectedTask);
+    setIsTaskInfoOpen(true);
+  };
+  const handleStartFocusTimer = () => {
+    setIsFocusTimerOpen(true);
+    setIsTaskInfoOpen(false);
+  };
 
   // Handle drag and drop event to update status
   const handleEventDrop = async (info) => {
@@ -129,17 +151,6 @@ const Calendar = () => {
     }
   };
 
-  // Handle event click
-  const handleEventClick = (info) => {
-    alert(
-      `Event: ${info.event.title}\nDescription: ${
-        info.event.extendedProps.description
-      }\nDate: ${info.event.start.toDateString()}\nStatus: ${
-        info.event.extendedProps.status
-      }\nPriority: ${info.event.extendedProps.priority}`
-    );
-  };
-
   return (
     <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ textAlign: "center", mb: 2 }}>
@@ -170,7 +181,7 @@ const Calendar = () => {
             initialView="dayGridMonth"
             events={events}
             editable={true}
-            headerToolbar={{
+            headerToolbar={{ 
               left: "prev,next today",
               center: "title",
               right: "dayGridMonth,dayGridWeek,dayGridDay",
@@ -230,12 +241,36 @@ const Calendar = () => {
                 </Box>
               );
             }}
-            
             eventClick={handleEventClick}
             eventDrop={handleEventDrop}
           />
         </Box>
       )}
+
+<Dialog open={isTaskInfoOpen} onClose={() => setIsTaskInfoOpen(false)}>
+        <DialogContent>
+          <Typography variant="h6">Task: {selectedTask?.title}</Typography>
+          <Typography variant="body1">Description: {selectedTask?.description}</Typography>
+          <Typography variant="body2">Date: {selectedTask?.start?.toDateString()}</Typography>
+          <Typography variant="body2">Status: {selectedTask?.status}</Typography>
+          <Typography variant="body2">Priority: {selectedTask?.priority}</Typography>
+        </DialogContent>
+        <DialogActions>
+          {selectedTask?.status === 'Doing' && (
+            <Button onClick={handleStartFocusTimer} color="primary" variant="contained">
+              Start Focus Timer
+            </Button>
+          )}
+          <Button onClick={() => setIsTaskInfoOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      <FocusTimer
+        task={selectedTask}
+        open={isFocusTimerOpen}
+        onClose={() => setIsFocusTimerOpen(false)}
+        onRefetch={fetchTasks}
+      />
     </Container>
   );
 };

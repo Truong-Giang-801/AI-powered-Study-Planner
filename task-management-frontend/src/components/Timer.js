@@ -1,73 +1,83 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, Button, Stack } from '@mui/material';
+import { Box, Typography, Button, Stack, LinearProgress, Alert } from '@mui/material';
 
-const Timer = () => {
-  const [time, setTime] = useState(0); // Total time in hundredths of a second
-  const [isActive, setIsActive] = useState(false);
+const Timer = ({ duration, onComplete, onCancel, isBreak = false }) => {
+  const [timeLeft, setTimeLeft] = useState(duration);
+  const [isActive, setIsActive] = useState(true);
+  const [showComplete, setShowComplete] = useState(false);
 
   useEffect(() => {
-    let interval = null;
-
-    if (isActive) {
+    let interval;
+    if (isActive && timeLeft > 0) {
       interval = setInterval(() => {
-        setTime((time) => time + 1); // Increment by 1 hundredth of a second
-      }, 10); // Update every 10ms (100Hz for centiseconds)
-    } else if (!isActive && time !== 0) {
-      clearInterval(interval);
+        setTimeLeft((prevTime) => prevTime - 1);
+      }, 1000);
+    } else if (timeLeft <= 0) {
+      // Play notification sound
+      const audio = new Audio('/notification.mp3');
+      audio.play().catch(e => console.log('Audio play failed:', e));
+      
+      setShowComplete(true);
+      setIsActive(false);
+      // Notify parent component
+      onComplete();
     }
-
     return () => clearInterval(interval);
-  }, [isActive, time]);
+  }, [isActive, timeLeft, onComplete]);
 
-  const reset = () => {
-    setTime(0);
-    setIsActive(false);
-  };
-
-  const hours = Math.floor(time / 360000);
-  const minutes = Math.floor((time % 360000) / 6000);
-  const seconds = Math.floor((time % 6000) / 100);
-  const centiseconds = time % 100;
+  const toggleTimer = () => setIsActive(!isActive);
+  const progress = ((duration - timeLeft) / duration) * 100;
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
 
   return (
-    <Container maxWidth="xs" sx={{ mt: 5, textAlign: 'center' }}>
-      <Box
-        sx={{
-          p: 3,
-          border: '1px solid #ddd',
-          borderRadius: '12px',
-          boxShadow: 3,
-          backgroundColor: '#f9f9f9',
-        }}
-      >
-        <Typography variant="h4" component="h2" gutterBottom>
-          Timer
-        </Typography>
+    <Box sx={{ width: '100%', textAlign: 'center' }}>
+      {showComplete && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {isBreak ? 'Break time is over!' : 'Focus session completed!'}
+        </Alert>
+      )}
+      
+      <LinearProgress 
+        variant="determinate" 
+        value={progress} 
+        sx={{ 
+          mb: 2,
+          height: 10,
+          backgroundColor: isBreak ? '#e8f5e9' : '#fce4ec',
+          '& .MuiLinearProgress-bar': {
+            backgroundColor: isBreak ? '#4caf50' : '#f50057'
+          }
+        }} 
+      />
 
-        <Typography
-          variant="h3"
-          sx={{ fontFamily: 'monospace', color: 'primary.main', mb: 3 }}
-        >
-          {hours < 10 ? `0${hours}` : hours}:
-          {minutes < 10 ? `0${minutes}` : minutes}:
-          {seconds < 10 ? `0${seconds}` : seconds}:
-          {centiseconds < 10 ? `0${centiseconds}` : centiseconds}
-        </Typography>
+      <Typography variant="h2" sx={{ 
+        fontFamily: 'monospace', 
+        mb: 3,
+        color: isBreak ? 'success.main' : 'primary.main'
+      }}>
+        {`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`}
+      </Typography>
 
-        <Stack direction="row" justifyContent="center" spacing={2}>
-          <Button
-            variant="contained"
-            color={isActive ? 'secondary' : 'primary'}
-            onClick={() => setIsActive(!isActive)}
+      <Stack direction="row" spacing={2} justifyContent="center">
+        {timeLeft > 0 && (
+          <Button 
+            variant="contained" 
+            onClick={toggleTimer}
+            color={isBreak ? 'success' : 'primary'}
           >
-            {isActive ? 'Pause' : 'Start'}
+            {isActive ? 'Pause' : 'Resume'}
           </Button>
-          <Button variant="outlined" color="error" onClick={reset}>
-            Reset
-          </Button>
-        </Stack>
-      </Box>
-    </Container>
+        )}
+        <Button 
+          variant="outlined" 
+          color="error" 
+          onClick={onCancel}
+        >
+          End Session
+        </Button>
+      </Stack>
+    </Box>
   );
 };
 
