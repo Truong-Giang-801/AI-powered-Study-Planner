@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext,useCallback  } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -21,17 +21,17 @@ const Calendar = () => {
 
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`);
-      const taskEvents = response.data.map(async (task) => {
-        if (task.userId !== user.uid) return null;
+      const taskEvents = response.data.map((task) => {
+        if (task.UserId !== user.uid) return null;
 
-        const dueDate = new Date(task.dueDate);
+        const dueDate = new Date(task.DueDate._seconds * 1000);
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Set to start of today
 
-        let status = task.status;
+        let status = task.Status;
         let backgroundColor = "#f0ad4e"; // Default color for Todo
 
-        if (task.isCompleted) {
+        if (task.IsCompleted) {
           backgroundColor = "#28a745"; // Green for Done
         } else if (dueDate < today) {
           status = "Expired";
@@ -39,10 +39,10 @@ const Calendar = () => {
 
           // Update the task status to "Expired" in the backend
           try {
-            await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, {
+            axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, {
               ...task,
-              status: "Expired",
-              statusEnum: 0, // 0 is the enum value for Expired
+              Status: "Expired",
+              StatusEnum: 0, // 0 is the enum value for Expired
             });
           } catch (error) {
             console.error("Error updating task status to Expired:", error);
@@ -55,19 +55,19 @@ const Calendar = () => {
 
         return {
           id: task.id,
-          title: task.title,
+          title: task.Title,
           start: dueDate.toISOString(),
           dueDate: dueDate,
           status: status,
-          statusEnum: task.statusEnum,
-          isCompleted: task.isCompleted,
-          userId: task.userId,
+          statusEnum: task.StatusEnum,
+          isCompleted: task.IsCompleted,
+          userId: task.UserId,
           emoji: task.emoji || "📅", // Default emoji
-          description: task.description || "No description provided.",
+          description: task.Description || "No description provided.",
           backgroundColor: backgroundColor,
           borderColor: backgroundColor,
           textColor: "#ffffff",
-          priority: task.priority,
+          priority: task.Priority,
         };
       });
 
