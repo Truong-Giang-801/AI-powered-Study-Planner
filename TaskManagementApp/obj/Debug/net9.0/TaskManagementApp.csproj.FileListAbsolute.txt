@@ -200,7 +200,6 @@ D:\HCMUS\WEB NANG CAO\Final\AI-powered-Study-Planner\TaskManagementApp\obj\Debug
 D:\HCMUS\WEB NANG CAO\Final\AI-powered-Study-Planner\TaskManagementApp\obj\Debug\net9.0\ref\TaskManagementApp.dll
 D:\Document for Uni\year 4\advance web dev\TaskManagement\TaskManagementApp\bin\Debug\net9.0\appsettings.Development.json
 D:\Document for Uni\year 4\advance web dev\TaskManagement\TaskManagementApp\bin\Debug\net9.0\appsettings.json
-D:\Document for Uni\year 4\advance web dev\TaskManagement\TaskManagementApp\bin\Debug\net9.0\Configs\serviceAccountKey.json
 D:\Document for Uni\year 4\advance web dev\TaskManagement\TaskManagementApp\bin\Debug\net9.0\TaskManagementApp.staticwebassets.endpoints.json
 D:\Document for Uni\year 4\advance web dev\TaskManagement\TaskManagementApp\bin\Debug\net9.0\TaskManagementApp.exe
 D:\Document for Uni\year 4\advance web dev\TaskManagement\TaskManagementApp\bin\Debug\net9.0\TaskManagementApp.deps.json
@@ -600,3 +599,4 @@ D:\HCMUS\WebNangCao\Final\AI-powered-Study-Planner\TaskManagementApp\obj\Debug\n
 D:\HCMUS\WebNangCao\Final\AI-powered-Study-Planner\TaskManagementApp\obj\Debug\net9.0\TaskManagementApp.pdb
 D:\HCMUS\WebNangCao\Final\AI-powered-Study-Planner\TaskManagementApp\obj\Debug\net9.0\TaskManagementApp.genruntimeconfig.cache
 D:\HCMUS\WebNangCao\Final\AI-powered-Study-Planner\TaskManagementApp\obj\Debug\net9.0\ref\TaskManagementApp.dll
+D:\Document for Uni\year 4\advance web dev\TaskManagement\TaskManagementApp\bin\Debug\net9.0\Configs\serviceAccountKey_.json
