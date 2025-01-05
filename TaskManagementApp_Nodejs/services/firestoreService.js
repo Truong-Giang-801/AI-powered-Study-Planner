@@ -1,12 +1,15 @@
 const admin = require('firebase-admin');
 const { TaskModel, TaskStatus, TaskPriority } = require('../models/TaskModel');
+const path = require('path');
 
+// Initialize Firebase Admin only once and avoid using file paths for service accounts in production
 if (!admin.apps.length) {
-  const serviceAccountPath = require('path').resolve(__dirname, '../Configs/serviceAccountKey_.json');
-  const serviceAccount = require(serviceAccountPath);
+  const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
+    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)  // If environment variable is set
+    : require(path.resolve(__dirname, '../Configs/serviceAccountKey_.json'));  // Local file path for development
 
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount),
   });
 
   console.log('FirebaseApp initialized successfully');
