@@ -252,7 +252,13 @@ const Calendar = () => {
         <DialogContent>
           <Typography variant="h6">Task: {selectedTask?.title}</Typography>
           <Typography variant="body1">Description: {selectedTask?.description}</Typography>
-          <Typography variant="body2">Date: {selectedTask?.start?.toDateString()}</Typography>
+          <Typography variant="body2">
+            Date: {selectedTask?.dueDate ? new Date(selectedTask.dueDate).toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            }) : '-'}
+          </Typography>
           <Typography variant="body2">Status: {selectedTask?.status}</Typography>
           <Typography variant="body2">Priority: {selectedTask?.priority}</Typography>
         </DialogContent>
