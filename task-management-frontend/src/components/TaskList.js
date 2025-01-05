@@ -70,6 +70,8 @@ const TaskList = () => {
                     }
                 });
 
+                console.log('API Response:', response.data);
+
                 const today = new Date();
                 const categorizedTasks = {
                     expired: [],
@@ -79,32 +81,33 @@ const TaskList = () => {
                 };
 
                 for (const task of response.data) {
-                    if (task.UserId !== user.uid) continue;
+                    if (task.userId !== user.uid) continue;
 
-                    const dueDate = new Date(task.DueDate._seconds * 1000);
-                    if (!task.IsCompleted && dueDate < today) {
-                        task.Status = 'Expired';
-                        task.StatusEnum = 0;
+                    const dueDate = new Date(task.dueDate._seconds * 1000);
+                    if (!task.isCompleted && dueDate < today) {
+                        task.status = 'Expired';
+                        task.statusEnum = 0;
                         await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, {
                             ...task,
-                            Status: 'Expired',
-                            StatusEnum: 0,
+                            status: 'Expired',
+                            statusEnum: 0,
                         });
                     }
 
-                    if (task.StatusEnum === 0) {
+                    if (task.statusEnum === 0) {
                         categorizedTasks.expired.push(task);
-                    } else if (task.StatusEnum === 1) {
+                    } else if (task.statusEnum === 1) {
                         categorizedTasks.todo.push(task);
-                    } else if (task.StatusEnum === 2) {
+                    } else if (task.statusEnum === 2) {
                         categorizedTasks.doing.push(task);
-                    } else if (task.StatusEnum === 3) {
+                    } else if (task.statusEnum === 3) {
                         categorizedTasks.done.push(task);
                     } else {
                         categorizedTasks.todo.push(task);
                     }
                 }
 
+                console.log('Categorized Tasks:', categorizedTasks);
                 setTasks(categorizedTasks);
             } catch (error) {
                 console.error('Error fetching tasks:', error);
@@ -143,21 +146,21 @@ const TaskList = () => {
     
             if (updatedTask) {
                 const today = new Date();
-                const dueDate = new Date(updatedTask.DueDate._seconds * 1000);
+                const dueDate = new Date(updatedTask.dueDate._seconds * 1000);
     
-                updatedTask.IsCompleted = isChecked;
+                updatedTask.isCompleted = isChecked;
                 if (isChecked) {
-                    updatedTask.Status = 'Done';
-                    updatedTask.StatusEnum = 3;
+                    updatedTask.status = 'Done';
+                    updatedTask.statusEnum = 3;
                     updatedTasks.done.push(updatedTask);
                 } else {
                     if (dueDate < today) {
-                        updatedTask.Status = 'Expired';
-                        updatedTask.StatusEnum = 0;
+                        updatedTask.status = 'Expired';
+                        updatedTask.statusEnum = 0;
                         updatedTasks.expired.push(updatedTask);
                     } else {
-                        updatedTask.Status = 'Todo';
-                        updatedTask.StatusEnum = 1;
+                        updatedTask.status = 'Todo';
+                        updatedTask.statusEnum = 1;
                         updatedTasks.todo.push(updatedTask);
                     }
                 }
@@ -205,18 +208,7 @@ const TaskList = () => {
     };
 
     const handleTaskUpdated = (updatedTask) => {
-        setTasks(prevTasks => {
-            const updatedTasks = { ...prevTasks };
-            for (let status in updatedTasks) {
-                const taskIndex = updatedTasks[status].findIndex(task => task.id === updatedTask.id);
-                if (taskIndex !== -1) {
-                    updatedTasks[status][taskIndex] = updatedTask;
-                    break;
-                }
-            }
-            return updatedTasks;
-        });
-
+        handleEditTask(updatedTask);
         setShowTaskForm(false);
         setEditingTask(null);
     };
@@ -240,9 +232,9 @@ const TaskList = () => {
         const [movedTask] = sourceColumn.splice(source.index, 1);
         destinationColumn.splice(destination.index, 0, movedTask);
 
-        movedTask.StatusEnum = destination.droppableId === 'todo' ? 1 :
+        movedTask.statusEnum = destination.droppableId === 'todo' ? 1 :
                                destination.droppableId === 'doing' ? 2 : 3;
-
+        movedTask.status = destination.droppableId.charAt(0).toUpperCase() + destination.droppableId.slice(1);
         setTasks({
             ...tasks,
             [source.droppableId]: sourceColumn,
@@ -300,7 +292,7 @@ const TaskList = () => {
         for (const status in tasks) {
             prompt += `${status.toUpperCase()}:\n`;
             for (const task of tasks[status]) {
-                prompt += `- ${task.Title} (Due: ${formatDueDate(task.DueDate)}, Priority: ${task.Priority})\n`;
+                prompt += `- ${task.title} (Due: ${formatDueDate(task.dueDate)}, Priority: ${task.priority})\n`;
             }
             prompt += '\n';
         }
@@ -310,9 +302,9 @@ const TaskList = () => {
 
     const filteredTasks = Object.keys(tasks).reduce((acc, status) => {
         acc[status] = tasks[status].filter(task => {
-            const matchesSearch = task.Title.toLowerCase().includes(searchTerm.toLowerCase());
-            const matchesFilterStatus = filterStatus === 'all' || task.Status === filterStatus;
-            const matchesFilterPriority = filterPriority === 'all' || task.Priority === filterPriority;
+            const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesFilterStatus = filterStatus === 'all' || task.status === filterStatus;
+            const matchesFilterPriority = filterPriority === 'all' || task.priority === filterPriority;
             return matchesSearch && matchesFilterStatus && matchesFilterPriority;
         });
         return acc;
@@ -321,9 +313,9 @@ const TaskList = () => {
     const sortedTasks = Object.keys(filteredTasks).reduce((acc, status) => {
         acc[status] = filteredTasks[status].sort((a, b) => {
             if (sortOrder === 'asc') {
-                return new Date(a.DueDate._seconds * 1000) - new Date(b.DueDate._seconds * 1000);
+                return new Date(a.dueDate._seconds * 1000) - new Date(b.dueDate._seconds * 1000);
             } else {
-                return new Date(b.DueDate._seconds * 1000) - new Date(a.DueDate._seconds * 1000);
+                return new Date(b.dueDate._seconds * 1000) - new Date(a.dueDate._seconds * 1000);
             }
         });
         return acc;
@@ -336,7 +328,10 @@ const TaskList = () => {
             <Box sx={{ display: 'flex', gap: 2, marginBottom: 2 }}>
                 <Button 
                     variant="contained" 
-                    onClick={() => setShowTaskForm(true)}
+                    onClick={() => {
+                        setEditingTask(null);
+                        setShowTaskForm(true);
+                    }}
                 >
                     Create Task
                 </Button>
@@ -443,46 +438,48 @@ const TaskList = () => {
                                     >
                                     <CardContent>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', fontSize: '1.25rem' }}>
-                                        {task.Title}
+                                        {task.title}
                                         </Typography>
                                         <Typography variant="body2">
-                                        {task.Description}
+                                        {task.description}
                                         </Typography>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                                         <Typography variant="caption">
-                                            Due: {formatDueDate(task.DueDate)}
+                                            Due: {formatDueDate(task.dueDate)}
                                         </Typography>
                                         <Typography variant="caption">
-                                            Priority: {task.Priority}
+                                            Priority: {task.priority}
                                         </Typography>
                                         </Box>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <FormControlLabel
                                             control={
                                             <Checkbox
-                                                checked={task.IsCompleted}
+                                                checked={task.isCompleted}
                                                 onChange={(e) => handleCheckboxChange(task.id, e.target.checked)}
                                             />
                                             }
-                                            label={task.IsCompleted ? 'Completed' : 'Incomplete'}
+                                            label={task.isCompleted ? 'Completed' : 'Incomplete'}
                                         />
-                                        <IconButton 
-                                            onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteTask(task.id);
-                                            }}
-                                        >
-                                            <DeleteIcon />
-                                        </IconButton>
-                                        <IconButton 
-                                            onClick={(e) => {
-                                            e.stopPropagation();
-                                            setEditingTask(task);
-                                            setShowTaskForm(true);
-                                            }}
-                                        >
-                                            <EditIcon />
-                                        </IconButton>
+                                        <Box>
+                                            <IconButton 
+                                                onClick={(e) => {
+                                                e.stopPropagation();
+                                                setEditingTask(task);
+                                                setShowTaskForm(true);
+                                                }}
+                                            >
+                                                <EditIcon />
+                                            </IconButton>
+                                            <IconButton 
+                                                onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteTask(task.id);
+                                                }}
+                                            >
+                                                <DeleteIcon />
+                                            </IconButton>
+                                        </Box>
                                         </Box>
                                     </CardContent>
                                     </Card>

@@ -21,17 +21,24 @@ const Calendar = () => {
 
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`);
-      const taskEvents = response.data.map((task) => {
-        if (task.UserId !== user.uid) return null;
+      console.log('API Response:', response.data); // Log the API response
 
-        const dueDate = new Date(task.DueDate._seconds * 1000);
+      const taskEvents = response.data.map((task) => {
+        if (task.userId !== user.uid) return null;
+
+        const dueDate = new Date(task.dueDate._seconds * 1000);
+        if (isNaN(dueDate.getTime())) {
+          console.error("Invalid due date:", task.dueDate);
+          return null;
+        }
+
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Set to start of today
 
-        let status = task.Status;
+        let status = task.status;
         let backgroundColor = "#f0ad4e"; // Default color for Todo
 
-        if (task.IsCompleted) {
+        if (task.isCompleted) {
           backgroundColor = "#28a745"; // Green for Done
         } else if (dueDate < today) {
           status = "Expired";
@@ -41,8 +48,8 @@ const Calendar = () => {
           try {
             axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, {
               ...task,
-              Status: "Expired",
-              StatusEnum: 0, // 0 is the enum value for Expired
+              status: "Expired",
+              statusEnum: 0, // 0 is the enum value for Expired
             });
           } catch (error) {
             console.error("Error updating task status to Expired:", error);
@@ -55,19 +62,19 @@ const Calendar = () => {
 
         return {
           id: task.id,
-          title: task.Title,
+          title: task.title,
           start: dueDate.toISOString(),
           dueDate: dueDate,
           status: status,
-          statusEnum: task.StatusEnum,
-          isCompleted: task.IsCompleted,
-          userId: task.UserId,
+          statusEnum: task.statusEnum,
+          isCompleted: task.isCompleted,
+          userId: task.userId,
           emoji: task.emoji || "📅", // Default emoji
-          description: task.Description || "No description provided.",
+          description: task.description || "No description provided.",
           backgroundColor: backgroundColor,
           borderColor: backgroundColor,
           textColor: "#ffffff",
-          priority: task.Priority,
+          priority: task.priority,
         };
       });
 
@@ -94,7 +101,12 @@ const Calendar = () => {
       dueDate: newStart.toISOString(), // Update due date
       id: info.event.id,
     });
-    console.log("Task clicked:", selectedTask);
+    console.log("Task clicked:", {
+      ...info.event.extendedProps,
+      title: info.event.title,
+      dueDate: newStart.toISOString(), // Update due date
+      id: info.event.id,
+    });
     setIsTaskInfoOpen(true);
   };
   const handleStartFocusTimer = () => {
@@ -248,7 +260,7 @@ const Calendar = () => {
         </Box>
       )}
 
-<Dialog open={isTaskInfoOpen} onClose={() => setIsTaskInfoOpen(false)}>
+      <Dialog open={isTaskInfoOpen} onClose={() => setIsTaskInfoOpen(false)}>
         <DialogContent>
           <Typography variant="h6">Task: {selectedTask?.title}</Typography>
           <Typography variant="body1">Description: {selectedTask?.description}</Typography>
