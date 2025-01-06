@@ -287,12 +287,12 @@ const TaskList = () => {
     };
 
     const generatePrompt = (tasks) => {
-        let prompt = "Analyze the following tasks and provide detailed feedback including warnings about tight schedules and prioritization recommendations for balance and focus:\n\n";
+        let prompt = "Provide feedback on potential adjustments, such as: Warning about overly tight schedules that may lead to burnout. Recommending prioritization changes for improved focus and balance.\n\n";
 
         for (const status in tasks) {
             prompt += `${status.toUpperCase()}:\n`;
             for (const task of tasks[status]) {
-                prompt += `- ${task.title} (Due: ${formatDueDate(task.dueDate)}, Priority: ${task.priority})\n`;
+                prompt += `- ${task.title} (Due: ${formatDueDate(task.dueDate)}, Priority: ${task.priority}, Time spent on this task till now: ${task.focusTime} seconds)\n`;
             }
             prompt += '\n';
         }
@@ -449,6 +449,9 @@ const TaskList = () => {
                                         </Typography>
                                         <Typography variant="caption">
                                             Priority: {task.priority}
+                                        </Typography>
+                                        <Typography variant="caption">
+                                            Focus Time: {task.focusTime / 60} minutes
                                         </Typography>
                                         </Box>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
