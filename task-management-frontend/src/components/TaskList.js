@@ -287,7 +287,7 @@ const TaskList = () => {
     };
 
     const generatePrompt = (tasks) => {
-        let prompt = "Analyze the following tasks and provide detailed feedback including warnings about tight schedules and prioritization recommendations for balance and focus:\n\n";
+        let prompt = "Provide feedback on potential adjustments, such as: Warning about overly tight schedules that may lead to burnout. Recommending prioritization changes for improved focus and balance.\n\n";
 
         for (const status in tasks) {
             prompt += `${status.toUpperCase()}:\n`;
