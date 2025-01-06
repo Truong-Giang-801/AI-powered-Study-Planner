@@ -16,7 +16,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Card,
+  Grid,
+  Divider,
+  Chip,
 } from "@mui/material";
+import { Edit, Star, TaskAlt, Google, Lock } from "@mui/icons-material";
 
 const Profile = () => {
   const { user } = useContext(UserContext);
@@ -28,6 +33,8 @@ const Profile = () => {
   const [editField, setEditField] = useState("");
   const [isVIP, setIsVIP] = useState(false);
   const [isGoogleLinked, setIsGoogleLinked] = useState(false);
+  const [tasksDone, setTasksDone] = useState(0);
+  const [totalTasks, setTotalTasks] = useState(0);
 
   // Populate user data
   useEffect(() => {
@@ -38,8 +45,14 @@ const Profile = () => {
           const userData = response.data;
           setFullName(user.displayName || "");
           setProfilePicture(user.photoURL || "");
-          setIsVIP(userData.userType === 'VIP');
-          setIsGoogleLinked(user.providerData.some(provider => provider.providerId === 'google.com'));
+          setIsVIP(userData.userType === "VIP");
+          setIsGoogleLinked(user.providerData.some((provider) => provider.providerId === "google.com"));
+
+          // Fetch tasks data
+          const tasksResponse = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks?userId=${user.uid}`);
+          const tasks = tasksResponse.data;
+          setTotalTasks(tasks.length);
+          setTasksDone(tasks.filter((task) => task.isCompleted).length);
         } catch (error) {
           console.error("Error fetching user data:", error);
           alert("Failed to fetch user data");
@@ -50,7 +63,6 @@ const Profile = () => {
     fetchUserData();
   }, [user]);
 
-  // Handle profile updates
   const handleUpdateProfile = async () => {
     try {
       if (editField === "profilePicture" && profilePictureURL) {
@@ -77,16 +89,15 @@ const Profile = () => {
   const handleUpgradeToVIP = async () => {
     try {
       const response = await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/users/${user.uid}/upgrade-vip`);
-      
       if (response.status === 200) {
         setIsVIP(true);
-        alert('Successfully upgraded to VIP!');
+        alert("Successfully upgraded to VIP!");
       } else {
-        throw new Error('Failed to upgrade to VIP');
+        throw new Error("Failed to upgrade to VIP");
       }
     } catch (error) {
-      console.error('Error upgrading to VIP:', error);
-      alert('Failed to upgrade to VIP');
+      console.error("Error upgrading to VIP:", error);
+      alert("Failed to upgrade to VIP");
     }
   };
 
@@ -95,31 +106,29 @@ const Profile = () => {
       const provider = new GoogleAuthProvider();
       await linkWithPopup(auth.currentUser, provider);
       setIsGoogleLinked(true);
-      alert('Google account linked successfully!');
+      alert("Google account linked successfully!");
     } catch (error) {
-      console.error('Error linking Google account:', error);
-      alert('Failed to link Google account');
+      console.error("Error linking Google account:", error);
+      alert("Failed to link Google account");
     }
   };
 
   const handleUnlinkGoogle = async () => {
     try {
-      await unlink(auth.currentUser, 'google.com');
+      await unlink(auth.currentUser, "google.com");
       setIsGoogleLinked(false);
-      alert('Google account unlinked successfully!');
+      alert("Google account unlinked successfully!");
     } catch (error) {
-      console.error('Error unlinking Google account:', error);
-      alert('Failed to unlink Google account');
+      console.error("Error unlinking Google account:", error);
+      alert("Failed to unlink Google account");
     }
   };
 
-  // Open dialog
   const handleOpenEditDialog = (field) => {
     setEditField(field);
     setOpenEditDialog(true);
   };
 
-  // Close dialog
   const handleCloseEditDialog = () => {
     setOpenEditDialog(false);
     setProfilePictureURL("");
@@ -127,128 +136,172 @@ const Profile = () => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box
-        sx={{
-          mt: 8,
-          p: 4,
-          border: "1px solid #ddd",
-          borderRadius: "12px",
-          boxShadow: 3,
-          backgroundColor: "white",
-        }}
+<Box
+  sx={{
+    minHeight: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 1,
+    backgroundColor: "#f9f9f9", // Light neutral background
+  }}
+>
+      <Container maxWidth="md">
+      <Card
+  sx={{
+    p: 3,
+    boxShadow: 2,
+    borderRadius: 2,
+    backgroundColor: "#fff",
+    maxWidth: 600, // Restrict card width
+    margin: "auto",
+  }}
+>
+  <Grid container spacing={3} alignItems="center">
+    <Grid item xs={12} display="flex" justifyContent="center">
+      <Avatar
+        src={profilePicture}
+        alt="Profile Picture"
+        sx={{ width: 120, height: 120, boxShadow: 2 }}
+      />
+    </Grid>
+    <Grid item xs={12}>
+      <Typography variant="h5" align="center">
+        {fullName}
+      </Typography>
+      <Stack
+        direction="row"
+        spacing={1}
+        alignItems="center"
+        justifyContent="center"
+        sx={{ mt: 1 }}
       >
-        <Typography variant="h4" component="h1" gutterBottom align="center">
-          Profile
-        </Typography>
+        {isVIP && (
+          <Chip label="VIP Member" icon={<Star />} color="secondary" size="small" />
+        )}
+        <Chip
+          label={`${tasksDone} / ${totalTasks} Tasks Done`}
+          icon={<TaskAlt />}
+          color="success"
+          size="small"
+        />
+      </Stack>
+    </Grid>
+  </Grid>
 
-        <Stack spacing={2} alignItems="center">
-          <Avatar
-            src={profilePicture}
-            alt="Profile Picture"
-            sx={{ width: 100, height: 100 }}
-          />
-          <Typography variant="h6">{fullName}</Typography>
-          <Button
-            variant="contained"
-            onClick={() => handleOpenEditDialog("profilePicture")}
-          >
-            Edit Profile Picture
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => handleOpenEditDialog("fullName")}
-          >
-            Edit Full Name
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => handleOpenEditDialog("password")}
-          >
-            Change Password
-          </Button>
-          {!isVIP && (
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleUpgradeToVIP}
-            >
-              Upgrade to VIP
-            </Button>
-          )}
-          {isVIP && (
-            <Typography variant="subtitle1" color="secondary">
-              VIP Member
-            </Typography>
-          )}
-          {!isGoogleLinked ? (
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleLinkGoogle}
-            >
-              Link Google Account
-            </Button>
-          ) : (
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleUnlinkGoogle}
-            >
-              Unlink Google Account
-            </Button>
-          )}
-        </Stack>
-      </Box>
+  <Divider sx={{ my: 3 }} />
 
-      <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
-        <DialogTitle>
-          Edit{" "}
-          {editField === "profilePicture"
-            ? "Profile Picture"
-            : editField === "fullName"
-            ? "Full Name"
-            : "Password"}
-        </DialogTitle>
-        <DialogContent>
-          {editField === "profilePicture" && (
-            <TextField
-              label="Profile Picture URL"
-              value={profilePictureURL}
-              onChange={(e) => setProfilePictureURL(e.target.value)}
-              fullWidth
-              variant="outlined"
-              placeholder="https://example.com/photo.jpg"
-            />
-          )}
-          {editField === "fullName" && (
-            <TextField
-              label="Full Name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              fullWidth
-              variant="outlined"
-            />
-          )}
-          {editField === "password" && (
-            <TextField
-              type="password"
-              label="New Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              fullWidth
-              variant="outlined"
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseEditDialog}>Cancel</Button>
-          <Button onClick={handleUpdateProfile} variant="contained" color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+  <Stack spacing={1}>
+    <Button
+      startIcon={<Edit />}
+      variant="outlined"
+      fullWidth
+      onClick={() => handleOpenEditDialog("profilePicture")}
+    >
+      Edit Profile Picture
+    </Button>
+    <Button
+      startIcon={<Edit />}
+      variant="outlined"
+      fullWidth
+      onClick={() => handleOpenEditDialog("fullName")}
+    >
+      Edit Full Name
+    </Button>
+    <Button
+      startIcon={<Lock />}
+      variant="outlined"
+      fullWidth
+      onClick={() => handleOpenEditDialog("password")}
+    >
+      Change Password
+    </Button>
+    {!isVIP && (
+      <Button
+        startIcon={<Star />}
+        variant="contained"
+        fullWidth
+        color="secondary"
+        onClick={handleUpgradeToVIP}
+      >
+        Upgrade to VIP
+      </Button>
+    )}
+    {!isGoogleLinked ? (
+      <Button
+        startIcon={<Google />}
+        variant="outlined"
+        fullWidth
+        color="primary"
+        onClick={handleLinkGoogle}
+      >
+        Link Google Account
+      </Button>
+    ) : (
+      <Button
+        startIcon={<Google />}
+        variant="outlined"
+        fullWidth
+        color="error"
+        onClick={handleUnlinkGoogle}
+      >
+        Unlink Google Account
+      </Button>
+    )}
+  </Stack>
+</Card>
+
+
+        <Dialog open={openEditDialog} onClose={handleCloseEditDialog} maxWidth="xs" fullWidth>
+  <DialogTitle>
+    Edit{" "}
+    {editField === "profilePicture"
+      ? "Profile Picture"
+      : editField === "fullName"
+      ? "Full Name"
+      : "Password"}
+  </DialogTitle>
+  <DialogContent>
+    {editField === "profilePicture" && (
+      <TextField
+        label="Profile Picture URL"
+        value={profilePictureURL}
+        onChange={(e) => setProfilePictureURL(e.target.value)}
+        fullWidth
+        variant="outlined"
+        placeholder="https://example.com/photo.jpg"
+      />
+    )}
+    {editField === "fullName" && (
+      <TextField
+        label="Full Name"
+        value={fullName}
+        onChange={(e) => setFullName(e.target.value)}
+        fullWidth
+        variant="outlined"
+      />
+    )}
+    {editField === "password" && (
+      <TextField
+        type="password"
+        label="New Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        fullWidth
+        variant="outlined"
+      />
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={handleCloseEditDialog}>Cancel</Button>
+    <Button onClick={handleUpdateProfile} variant="contained" color="primary">
+      Save
+    </Button>
+  </DialogActions>
+</Dialog>
+
+      </Container>
+    </Box>
   );
 };
 
