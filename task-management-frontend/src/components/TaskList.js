@@ -300,6 +300,11 @@ const TaskList = () => {
         return prompt;
     };
 
+    const calculateTotalFocusTime = (task) => {
+        if (!task.focusSessions) return 0;
+        return task.focusSessions.reduce((total, session) => total + session.duration, 0);
+    };
+
     const filteredTasks = Object.keys(tasks).reduce((acc, status) => {
         acc[status] = tasks[status].filter(task => {
             const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -451,7 +456,7 @@ const TaskList = () => {
                                             Priority: {task.priority}
                                         </Typography>
                                         <Typography variant="caption">
-                                            Focus Time: {task.focusTime / 60} minutes
+                                            Focus Time: {Math.round(calculateTotalFocusTime(task) / 60)} minutes
                                         </Typography>
                                         </Box>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

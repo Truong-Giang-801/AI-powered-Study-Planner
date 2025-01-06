@@ -18,30 +18,25 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
     setIsInSession(true);
   };
 
-  const updateTaskFocusTime = async (additionalTime) => {
+  const updateTaskFocusTime = async (newSession) => {
     try {
-      const currentFocusTime = Number(task.focusTime) || 0;
-      const additionalTimeNumber = Number(additionalTime) || 0;
-      console.log('Current focus time:', currentFocusTime);
-      console.log('Additional time:', additionalTimeNumber);
-      task.focusTime = currentFocusTime + additionalTimeNumber;
+      const currentFocusSessions = task.focusSessions || [];
       const updatedTask = {
         ...task,
+        focusSessions: [...currentFocusSessions, newSession],
+        focusTime: [...currentFocusSessions, newSession].reduce((total, session) => total + session.duration, 0)
       };
-      console.log('Updated task:', updatedTask);
+      
       await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, updatedTask);
       onRefetch();
     } catch (error) {
-      console.error('Error updating focus time:', error);
+      console.error('Error updating focus sessions:', error);
     }
   };
 
-  const handleCompleteSession = (elapsedTime, isDeadlineReached) => {
-    if (isDeadlineReached) {
-      alert("Task deadline reached! Focus session ended.");
-    }
+  const handleCompleteSession = (session) => {
     if (!isBreak) {
-      updateTaskFocusTime(elapsedTime);
+      updateTaskFocusTime(session);
     }
     setShowCompletionDialog(true);
   };
@@ -73,9 +68,9 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
     }
   };
 
-  const handleCancelSession = (elapsedTime) => {
-    if (!isBreak) {
-      updateTaskFocusTime(elapsedTime);
+  const handleCancelSession = (session) => {
+    if (!isBreak && session.duration > 0) {
+      updateTaskFocusTime(session);
     }
     setIsInSession(false);
     setIsBreak(false);
@@ -152,7 +147,7 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
     {isBreak ? 'Break Time Complete!' : 'Focus Session Complete!'}
   </DialogTitle>
   <DialogContent>
-    <Typography variant="body1" gutterBottom>
+    <Typography variant="body1" gutterBottom> 
       Great work! What would you like to do next?
     </Typography>
   </DialogContent>

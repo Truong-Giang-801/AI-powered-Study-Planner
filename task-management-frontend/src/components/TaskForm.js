@@ -66,6 +66,7 @@ const TaskForm = ({ onTaskCreated, onTaskUpdated, task }) => {
       statusEnum: statusEnum,
       isCompleted: task ? task.isCompleted : false,
       priority,
+      focusSessions: [],
       userId: user ? user.uid : null, // Include user ID
     };
 

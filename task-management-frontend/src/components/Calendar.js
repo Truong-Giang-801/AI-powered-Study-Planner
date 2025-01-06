@@ -68,6 +68,7 @@ const Calendar = () => {
           start: dueDate.toISOString(),
           dueDate: task.dueDate,
           focusTime: task.focusTime,
+          focusSessions: task.focusSessions,
           status: status,
           statusEnum: task.statusEnum,
           isCompleted: task.isCompleted,
@@ -199,7 +200,7 @@ const Calendar = () => {
         <Alert severity="info" sx={{ textAlign: "center" }}>
           No tasks found. Create a task to get started!
         </Alert>
-      ) : (
+      ) : ( 
         <Box
           sx={{
             p: 2,
