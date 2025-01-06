@@ -105,8 +105,10 @@ const Dashboard = () => {
                 const statusCounts = { expired: 0, todo: 0, doing: 0, done: 0 };
     
                 const today = new Date();
+                const currentDay = today.getDay(); // 0 is Sunday, 1 is Monday, etc.
+                const daysFromLastSunday = currentDay;
                 const startOfWeek = new Date(today);
-                startOfWeek.setDate(today.getDate() - today.getDay());
+                startOfWeek.setDate(today.getDate() - daysFromLastSunday - 1);
     
                 let totalTimeSpent = 0;
                 let totalEstimatedTime = tasks.length * 25 * 60; // 25 minutes per task in seconds

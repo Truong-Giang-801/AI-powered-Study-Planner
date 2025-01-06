@@ -50,7 +50,7 @@ const Profile = () => {
 
           // Fetch tasks data
           const tasksResponse = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks?userId=${user.uid}`);
-          const tasks = tasksResponse.data;
+          const tasks = tasksResponse.data.filter((task) => task.userId === user.uid);
           setTotalTasks(tasks.length);
           setTasksDone(tasks.filter((task) => task.isCompleted).length);
         } catch (error) {
