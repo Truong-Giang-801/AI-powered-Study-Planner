@@ -21,10 +21,10 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
   const updateTaskFocusTime = async (newSession) => {
     try {
       const currentFocusSessions = task.focusSessions || [];
+      task.focusSessions = [...currentFocusSessions, newSession];
+      task.focusTime = [...currentFocusSessions, newSession].reduce((total, session) => total + session.duration, 0)
       const updatedTask = {
         ...task,
-        focusSessions: [...currentFocusSessions, newSession],
-        focusTime: [...currentFocusSessions, newSession].reduce((total, session) => total + session.duration, 0)
       };
       
       await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, updatedTask);
@@ -42,12 +42,14 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
   };
 
   const handleRestartSession = () => {
+    // Reset timer state for a fresh session
     setShowCompletionDialog(false);
     setIsBreak(false);
     setIsInSession(true);
   };
 
   const handleStartBreak = () => {
+    // Reset timer state for break
     setShowCompletionDialog(false);
     setIsBreak(true);
     setIsInSession(true);
@@ -69,7 +71,7 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
   };
 
   const handleCancelSession = (session) => {
-    if (!isBreak && session.duration > 0) {
+    if (!isBreak && session?.duration > 0) {
       updateTaskFocusTime(session);
     }
     setIsInSession(false);
@@ -113,7 +115,8 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
           </Box>
         ) : (
           <Timer
-            duration={focusDuration * 60}
+            key={`${isBreak}-${showCompletionDialog}`} // Add key to force Timer recreation
+            duration={isBreak ? breakDuration * 60 : focusDuration * 60}
             onComplete={handleCompleteSession}
             onCancel={handleCancelSession}
             isBreak={isBreak}

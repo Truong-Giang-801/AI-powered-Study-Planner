@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, Button, Stack, LinearProgress, Alert } from '@mui/material';
 
-const Timer = ({ duration, onComplete, onCancel, isBreak = false }) => {
+const Timer = ({ duration, onComplete, isBreak = false }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isActive, setIsActive] = useState(true);
   const [showComplete, setShowComplete] = useState(false);
@@ -20,8 +20,8 @@ const Timer = ({ duration, onComplete, onCancel, isBreak = false }) => {
       date: new Date().toISOString(),
       duration: elapsedTime
     };
-    onCancel(session);
-  }, [elapsedTime, onCancel]);
+    onComplete(session);
+  }, [elapsedTime, onComplete]);
 
   useEffect(() => {
     let interval;
