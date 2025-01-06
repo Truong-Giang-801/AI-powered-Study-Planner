@@ -61,12 +61,12 @@ const TaskForm = ({ onTaskCreated, onTaskUpdated, task }) => {
         _seconds: Math.floor(new Date(dueDate).getTime() / 1000),
         _nanoseconds: 0,
       },
-      focusTime: task.focusTime || 0,
+      focusTime: task?.focusTime !== null && task?.focusTime !== undefined ? task.focusTime : 0,
       status: mapStatusEnumToStatus(statusEnum),
       statusEnum: statusEnum,
       isCompleted: task ? task.isCompleted : false,
       priority,
-      focusSessions: task.focusSessions || [],
+      focusSessions: task?.focusSessions !== null && task?.focusSessions !== undefined ? task.focusSessions : [],
       userId: user ? user.uid : null, // Include user ID
     };
 
