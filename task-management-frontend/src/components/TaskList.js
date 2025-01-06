@@ -292,7 +292,7 @@ const TaskList = () => {
         for (const status in tasks) {
             prompt += `${status.toUpperCase()}:\n`;
             for (const task of tasks[status]) {
-                prompt += `- ${task.title} (Due: ${formatDueDate(task.dueDate)}, Priority: ${task.priority})\n`;
+                prompt += `- ${task.title} (Due: ${formatDueDate(task.dueDate)}, Priority: ${task.priority}, Time spent on this task till now: ${task.focusTime} seconds)\n`;
             }
             prompt += '\n';
         }
@@ -449,6 +449,9 @@ const TaskList = () => {
                                         </Typography>
                                         <Typography variant="caption">
                                             Priority: {task.priority}
+                                        </Typography>
+                                        <Typography variant="caption">
+                                            Focus Time: {task.focusTime / 60} minutes
                                         </Typography>
                                         </Box>
                                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
