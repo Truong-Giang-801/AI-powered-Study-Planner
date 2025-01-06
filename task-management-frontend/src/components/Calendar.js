@@ -10,6 +10,7 @@ import FocusTimer from "./FocusTimer"; // Import the new component
 const Calendar = () => {
   const [events, setEvents] = useState([]);
   const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useContext(UserContext);
   const [selectedTask, setSelectedTask] = useState(null); // State to store the selected task
   const [isFocusTimerOpen, setIsFocusTimerOpen] = useState(false); // State to control the focus timer modal
@@ -17,13 +18,14 @@ const Calendar = () => {
 
   // Memoize the fetchTasks function
   const fetchTasks = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const response = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks`);
-      console.log('API Response:', response.data); // Log the API response
-
-      const taskEvents = response.data.map((task) => {
+      const taskEvents = response.data.map(async (task) => {
         if (task.userId !== user.uid) return null;
 
         const dueDate = new Date(task.dueDate._seconds * 1000);
@@ -81,10 +83,12 @@ const Calendar = () => {
 
       // Wait for all tasks to be processed before setting the state
       const processedTasks = await Promise.all(taskEvents);
-      setEvents(processedTasks.filter((event) => event !== null));
+      setEvents(processedTasks.filter(event => event !== null));
+      setIsLoading(false);
     } catch (error) {
       console.error("Error fetching tasks:", error);
       setError("Failed to load tasks. Please try again later.");
+      setIsLoading(false);
     }
   }, [user]); // Memoize the function with `user` as a dependency
 
@@ -187,10 +191,14 @@ const Calendar = () => {
         <Alert severity="error" sx={{ textAlign: "center" }}>
           {error}
         </Alert>
-      ) : events.length === 0 ? (
+      ) : isLoading ? (
         <Box display="flex" justifyContent="center" alignItems="center" sx={{ height: "300px" }}>
           <CircularProgress color="primary" />
         </Box>
+      ) : events.length === 0 ? (
+        <Alert severity="info" sx={{ textAlign: "center" }}>
+          No tasks found. Create a task to get started!
+        </Alert>
       ) : (
         <Box
           sx={{

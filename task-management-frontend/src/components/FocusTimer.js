@@ -20,10 +20,15 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
 
   const updateTaskFocusTime = async (additionalTime) => {
     try {
+      const currentFocusTime = Number(task.focusTime) || 0;
+      const additionalTimeNumber = Number(additionalTime) || 0;
+      console.log('Current focus time:', currentFocusTime);
+      console.log('Additional time:', additionalTimeNumber);
+      task.focusTime = currentFocusTime + additionalTimeNumber;
       const updatedTask = {
         ...task,
-        focusTime: (task.focusTime || 0) + additionalTime
       };
+      console.log('Updated task:', updatedTask);
       await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, updatedTask);
       onRefetch();
     } catch (error) {
@@ -31,7 +36,10 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
     }
   };
 
-  const handleCompleteSession = (elapsedTime) => {
+  const handleCompleteSession = (elapsedTime, isDeadlineReached) => {
+    if (isDeadlineReached) {
+      alert("Task deadline reached! Focus session ended.");
+    }
     if (!isBreak) {
       updateTaskFocusTime(elapsedTime);
     }
@@ -110,9 +118,11 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
           </Box>
         ) : (
           <Timer
-            duration={isBreak ? breakDuration * 60 : focusDuration * 60}
+            duration={focusDuration * 60}
             onComplete={handleCompleteSession}
-            onCancel={handleCompleteSession}
+            onCancel={handleCancelSession}
+            isBreak={isBreak}
+            taskDeadline={task.DueDate}
           />
         )}
       </DialogContent>

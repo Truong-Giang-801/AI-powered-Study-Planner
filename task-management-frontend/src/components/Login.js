@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   fetchSignInMethodsForEmail,
+  sendPasswordResetEmail, // Add this import
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
@@ -26,6 +27,13 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
+      const { isGoogleOnly } = await checkSignInMethods(email);
+      
+      if (isGoogleOnly) {
+        alert("This account had uses Google Sign-In. Please use the 'Login with Google' button below and set password in profile page.");
+        return;
+      }
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       alert(`Welcome back, ${userCredential.user.email}!`);
       navigate("/dashboard");
@@ -71,6 +79,44 @@ const Login = () => {
         }
       } else {
         handleAuthError(error);
+      }
+    }
+  };
+  const checkSignInMethods = async (email) => {
+    const methods = await fetchSignInMethodsForEmail(auth, email);
+    return {
+      hasGoogle: methods.includes('google.com'),
+      hasPassword: methods.includes('password'),
+      isGoogleOnly: methods.includes('google.com') && methods.length === 1
+    };
+  };
+  const handleForgotPassword = async () => {
+    if (!email) {
+      alert("Please enter your email address");
+      return;
+    }
+
+    try {
+      const { isGoogleOnly } = await checkSignInMethods(email);
+      
+      if (isGoogleOnly) {
+        alert("This account had uses Google Sign-In. Please use the 'Login with Google' button above and set password in profile page.");
+        return;
+      }
+
+      await sendPasswordResetEmail(auth, email);
+      alert("Password reset email sent! Please check your inbox.");
+    } catch (error) {
+      switch (error.code) {
+        case "auth/user-not-found":
+          alert("No account exists with this email.");
+          break;
+        case "auth/invalid-email":
+          alert("Invalid email address.");
+          break;
+        default:
+          alert(`Failed to send reset email: ${error.message}`);
+          console.error("Reset password error:", error);
       }
     }
   };
@@ -156,6 +202,13 @@ const Login = () => {
             Register here
           </Link>
         </Typography>
+        <Button
+          onClick={handleForgotPassword}
+          sx={{ mt: 1, width: "100%" }}
+          color="secondary"
+        >
+          Forgot Password?
+        </Button>
       </Box>
     </Container>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, Stack, LinearProgress, Alert } from '@mui/material';
 
-const Timer = ({ duration, onComplete, onCancel, isBreak = false }) => {
+const Timer = ({ duration, onComplete, onCancel, isBreak = false, taskDeadline }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isActive, setIsActive] = useState(true);
   const [showComplete, setShowComplete] = useState(false);
@@ -11,11 +11,26 @@ const Timer = ({ duration, onComplete, onCancel, isBreak = false }) => {
     let interval;
     if (isActive && timeLeft > 0) {
       interval = setInterval(() => {
+        // Check if deadline is reached
+        const now = new Date();
+        const deadline = new Date(taskDeadline._seconds * 1000);
+        
+        if (now >= deadline) {
+          clearInterval(interval);
+          const audio = new Audio('/sounds/notification.mp3');
+          audio.play().catch(e => console.log('Audio play failed:', e));
+          
+          setShowComplete(true);
+          setIsActive(false);
+          onComplete(elapsedTime, true); // true indicates deadline reached
+          return;
+        }
+
         setTimeLeft((prevTime) => prevTime - 1);
         setElapsedTime((prevElapsed) => prevElapsed + 1);
       }, 1000);
     } else if (timeLeft <= 0) {
-      const audio = new Audio('/notification.mp3');
+      const audio = new Audio('/sounds/notification.mp3');
       audio.play().catch(e => console.log('Audio play failed:', e));
       
       setShowComplete(true);
@@ -23,7 +38,8 @@ const Timer = ({ duration, onComplete, onCancel, isBreak = false }) => {
       onComplete(elapsedTime);
     }
     return () => clearInterval(interval);
-  }, [isActive, timeLeft, onComplete, elapsedTime]);
+  }, [isActive, timeLeft, onComplete, elapsedTime, taskDeadline]);
+
 
   const handleCancel = () => {
     console.log('elapsedTime:', elapsedTime);
