@@ -14,6 +14,7 @@ class TaskModel {
     status = TaskStatus.Todo,
     statusEnum = 1,
     priority = TaskPriority.Medium,
+    focusTime = 0, // Add focusTime field with default 0 seconds
   } = {}) {
     this.id = id;
     this.userId = userId;
@@ -24,6 +25,7 @@ class TaskModel {
     this.status = status;
     this.statusEnum = statusEnum;
     this.priority = priority;
+    this.focusTime = focusTime;
   }
 
   static fromFirestore(doc) {
@@ -38,6 +40,7 @@ class TaskModel {
       status: data.Status,
       statusEnum: data.StatusEnum,
       priority: data.Priority,
+      focusTime: data.FocusTime || 0, // Get focusTime from Firestore or default to 0
     });
   }
 
@@ -51,6 +54,7 @@ class TaskModel {
       Status: this.status,
       StatusEnum: this.statusEnum,
       Priority: this.priority,
+      FocusTime: this.focusTime, // Save focusTime to Firestore
     };
   }
 }

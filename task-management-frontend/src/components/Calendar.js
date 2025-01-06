@@ -64,7 +64,8 @@ const Calendar = () => {
           id: task.id,
           title: task.title,
           start: dueDate.toISOString(),
-          dueDate: dueDate,
+          dueDate: task.dueDate,
+          focusTime: task.focusTime,
           status: status,
           statusEnum: task.statusEnum,
           isCompleted: task.isCompleted,
@@ -94,18 +95,24 @@ const Calendar = () => {
   
   // Handle event click
   const handleEventClick = (info) => {
-    const newStart = info.event.start;
+    console.log("Task clicked:", info.event);
     setSelectedTask({
       ...info.event.extendedProps,
       title: info.event.title,
-      dueDate: newStart.toISOString(), // Update due date
       id: info.event.id,
+      dueDate: {
+        _seconds: Math.floor(new Date(info.event.start).getTime() / 1000),
+        _nanoseconds: 0,
+      },  
     });
     console.log("Task clicked:", {
       ...info.event.extendedProps,
       title: info.event.title,
-      dueDate: newStart.toISOString(), // Update due date
       id: info.event.id,
+      dueDate: {
+        _seconds: Math.floor(new Date(info.event.start).getTime() / 1000),
+        _nanoseconds: 0,
+      },
     });
     setIsTaskInfoOpen(true);
   };
@@ -121,9 +128,13 @@ const Calendar = () => {
 
     const updatedTaskData = {
       ...info.event.extendedProps,
+      dueDate: {
+        _seconds: Math.floor(new Date(newStart).getTime() / 1000),
+        _nanoseconds: 0,
+      },
       title: info.event.title,
-      dueDate: newStart.toISOString(), // Update due date
     };
+    console.log("Task dropped:", updatedTaskData);
     const pre_status = updatedTaskData.status;
     const pre_statusEnum = updatedTaskData.statusEnum;
     // Check if the new date is not expired
@@ -265,7 +276,7 @@ const Calendar = () => {
           <Typography variant="h6">Task: {selectedTask?.title}</Typography>
           <Typography variant="body1">Description: {selectedTask?.description}</Typography>
           <Typography variant="body2">
-            Date: {selectedTask?.dueDate ? new Date(selectedTask.dueDate).toLocaleDateString('en-GB', {
+            Date: {selectedTask?.dueDate ? new Date(selectedTask.dueDate._seconds * 1000).toLocaleDateString('en-GB', {
               day: '2-digit',
               month: '2-digit',
               year: 'numeric'
@@ -273,6 +284,9 @@ const Calendar = () => {
           </Typography>
           <Typography variant="body2">Status: {selectedTask?.status}</Typography>
           <Typography variant="body2">Priority: {selectedTask?.priority}</Typography>
+          <Typography variant="body2">
+            Total Focus Time: {Math.floor((selectedTask?.focusTime || 0) / 60)} minutes
+          </Typography>
         </DialogContent>
         <DialogActions>
           {selectedTask?.status === 'Doing' && (

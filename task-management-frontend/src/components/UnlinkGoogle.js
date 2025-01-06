@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { auth } from "../firebase";
-import { unlink } from "firebase/auth";
+import { unlink, fetchSignInMethodsForEmail } from "firebase/auth";
 import { Button, Container, Box, Typography, Stack } from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
 
@@ -17,11 +17,17 @@ const UnlinkGoogle = () => {
         setStatusMessage("You must be logged in to unlink a Google account.");
         return;
       }
-
-      // Unlink the Google provider
-      await unlink(auth.currentUser, "google.com");
-      console.log("Google account unlinked successfully!");
-      setStatusMessage("Google account successfully unlinked.");
+      const methods = await fetchSignInMethodsForEmail(auth, auth.currentUser.email);
+      if (methods.length > 1 || (methods===1 && methods[0]!=="google.com")) {
+        // Unlink the Google provider
+        await unlink(auth.currentUser, "google.com");
+        console.log("Google account unlinked successfully!");
+        setStatusMessage("Google account successfully unlinked.");
+      }
+      else {
+        console.error("User does not have any other sign-in methods.");
+        setStatusMessage("You must have another sign-in method to unlink Google account.");
+      }
     } catch (error) {
       console.error("Error during Google account unlinking:", error);
       setStatusMessage(`Failed to unlink Google account: ${error.message}`);

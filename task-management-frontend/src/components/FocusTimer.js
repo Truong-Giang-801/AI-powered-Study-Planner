@@ -13,11 +13,28 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
   const [isBreak, setIsBreak] = useState(false);
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
 
+  
   const handleStartSession = () => {
     setIsInSession(true);
   };
 
-  const handleCompleteSession = () => {
+  const updateTaskFocusTime = async (additionalTime) => {
+    try {
+      const updatedTask = {
+        ...task,
+        focusTime: (task.focusTime || 0) + additionalTime
+      };
+      await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, updatedTask);
+      onRefetch();
+    } catch (error) {
+      console.error('Error updating focus time:', error);
+    }
+  };
+
+  const handleCompleteSession = (elapsedTime) => {
+    if (!isBreak) {
+      updateTaskFocusTime(elapsedTime);
+    }
     setShowCompletionDialog(true);
   };
 
@@ -36,6 +53,7 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
   const handleMarkComplete = async () => {
     try {
       task.status = 'Done';
+      task.isCompleted = true;
       task.statusEnum = 3;
       console.log('Task: ', task);
       await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/tasks/${task.id}`, task);
@@ -47,7 +65,10 @@ const FocusTimer = ({ task = null, open, onClose, onRefetch }) => {
     }
   };
 
-  const handleCancelSession = () => {
+  const handleCancelSession = (elapsedTime) => {
+    if (!isBreak) {
+      updateTaskFocusTime(elapsedTime);
+    }
     setIsInSession(false);
     setIsBreak(false);
     setShowCompletionDialog(false);

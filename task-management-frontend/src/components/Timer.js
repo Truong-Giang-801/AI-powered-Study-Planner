@@ -5,25 +5,30 @@ const Timer = ({ duration, onComplete, onCancel, isBreak = false }) => {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isActive, setIsActive] = useState(true);
   const [showComplete, setShowComplete] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   useEffect(() => {
     let interval;
     if (isActive && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft((prevTime) => prevTime - 1);
+        setElapsedTime((prevElapsed) => prevElapsed + 1);
       }, 1000);
     } else if (timeLeft <= 0) {
-      // Play notification sound
       const audio = new Audio('/notification.mp3');
       audio.play().catch(e => console.log('Audio play failed:', e));
       
       setShowComplete(true);
       setIsActive(false);
-      // Notify parent component
-      onComplete();
+      onComplete(elapsedTime);
     }
     return () => clearInterval(interval);
-  }, [isActive, timeLeft, onComplete]);
+  }, [isActive, timeLeft, onComplete, elapsedTime]);
+
+  const handleCancel = () => {
+    console.log('elapsedTime:', elapsedTime);
+    onCancel(elapsedTime);
+  };
 
   const toggleTimer = () => setIsActive(!isActive);
   const progress = ((duration - timeLeft) / duration) * 100;
@@ -72,7 +77,7 @@ const Timer = ({ duration, onComplete, onCancel, isBreak = false }) => {
         <Button 
           variant="outlined" 
           color="error" 
-          onClick={onCancel}
+          onClick={handleCancel}
         >
           End Session
         </Button>

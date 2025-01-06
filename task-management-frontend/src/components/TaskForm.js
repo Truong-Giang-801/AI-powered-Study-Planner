@@ -61,6 +61,7 @@ const TaskForm = ({ onTaskCreated, onTaskUpdated, task }) => {
         _seconds: Math.floor(new Date(dueDate).getTime() / 1000),
         _nanoseconds: 0,
       },
+      focusTime: 0,
       status: mapStatusEnumToStatus(statusEnum),
       statusEnum: statusEnum,
       isCompleted: task ? task.isCompleted : false,
