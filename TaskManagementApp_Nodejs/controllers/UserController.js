@@ -52,6 +52,16 @@ class UserController {
       res.status(500).json({ error: error.message });
     }
   }
+
+  async upgradeToVIP(req, res) {
+    try {
+      const { userId } = req.params;
+      const updatedUser = await userService.updateUser(userId, { userType: 'VIP' });
+      res.status(200).json(updatedUser);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 
 module.exports = new UserController();

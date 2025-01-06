@@ -12,8 +12,8 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Use routes
-app.use('/api', taskRoutes);
-app.use('/api', userRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/users', userRoutes);
 // Start the server
 const PORT = process.env.PORT || 5251;
 app.listen(PORT, () => {

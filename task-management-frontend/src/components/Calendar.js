@@ -3,7 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import axios from "axios";
-import { Container, Box, Typography, CircularProgress, Alert, Button, Dialog, DialogContent, DialogActions } from "@mui/material";
+import { Container, Box, Typography, CircularProgress, Alert, Button, Dialog, DialogContent, DialogActions, Snackbar } from "@mui/material";
 import { UserContext } from "../context/UserContext";
 import FocusTimer from "./FocusTimer"; // Import the new component
 
@@ -15,6 +15,9 @@ const Calendar = () => {
   const [selectedTask, setSelectedTask] = useState(null); // State to store the selected task
   const [isFocusTimerOpen, setIsFocusTimerOpen] = useState(false); // State to control the focus timer modal
   const [isTaskInfoOpen, setIsTaskInfoOpen] = useState(false); // State to control the task information dialog
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [userData, setUserData] = useState(null);
 
   // Memoize the fetchTasks function
   const fetchTasks = useCallback(async () => {
@@ -98,6 +101,22 @@ const Calendar = () => {
     fetchTasks();
   }, [fetchTasks]); 
   
+  // Add new useEffect for fetching user data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user) {
+        try {
+          const response = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/users/${user.uid}`);
+          setUserData(response.data);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [user]);
+
   // Handle event click
   const handleEventClick = (info) => {
     console.log("Task clicked:", info.event);
@@ -122,6 +141,11 @@ const Calendar = () => {
     setIsTaskInfoOpen(true);
   };
   const handleStartFocusTimer = () => {
+    if (!userData || userData.userType !== 'VIP') {
+      setSnackbarMessage('This feature is only available for VIP users. Please upgrade to use the Focus Timer.');
+      setOpenSnackbar(true);
+      return;
+    }
     setIsFocusTimerOpen(true);
     setIsTaskInfoOpen(false);
   };
@@ -306,6 +330,21 @@ const Calendar = () => {
           <Button onClick={() => setIsTaskInfoOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={() => setOpenSnackbar(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setOpenSnackbar(false)} 
+          severity="warning" 
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
 
       <FocusTimer
         task={selectedTask}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { auth } from "../firebase";
 import { updateProfile, updatePassword } from "firebase/auth";
 import { UserContext } from "../context/UserContext";
+import axios from "axios";
 import {
   Container,
   TextField,
@@ -24,13 +25,26 @@ const Profile = () => {
   const [password, setPassword] = useState("");
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editField, setEditField] = useState("");
+  const [isVIP, setIsVIP] = useState(false);
 
   // Populate user data
   useEffect(() => {
-    if (user) {
-      setFullName(user.displayName || "");
-      setProfilePicture(user.photoURL || "");
-    }
+    const fetchUserData = async () => {
+      if (user) {
+        try {
+          const response = await axios.get(`${process.env.REACT_APP_BACKEND_API_URL}/api/users/${user.uid}`);
+          const userData = response.data;
+          setFullName(user.displayName || "");
+          setProfilePicture(user.photoURL || "");
+          setIsVIP(userData.userType === 'VIP');
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          alert("Failed to fetch user data");
+        }
+      }
+    };
+
+    fetchUserData();
   }, [user]);
 
   // Handle profile updates
@@ -54,6 +68,22 @@ const Profile = () => {
     } catch (error) {
       console.error("Error updating profile:", error.message);
       alert(`Failed to update profile: ${error.message}`);
+    }
+  };
+
+  const handleUpgradeToVIP = async () => {
+    try {
+      const response = await axios.put(`${process.env.REACT_APP_BACKEND_API_URL}/api/users/${user.uid}/upgrade-vip`);
+      
+      if (response.status === 200) {
+        setIsVIP(true);
+        alert('Successfully upgraded to VIP!');
+      } else {
+        throw new Error('Failed to upgrade to VIP');
+      }
+    } catch (error) {
+      console.error('Error upgrading to VIP:', error);
+      alert('Failed to upgrade to VIP');
     }
   };
 
@@ -111,6 +141,20 @@ const Profile = () => {
           >
             Change Password
           </Button>
+          {!isVIP && (
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleUpgradeToVIP}
+            >
+              Upgrade to VIP
+            </Button>
+          )}
+          {isVIP && (
+            <Typography variant="subtitle1" color="secondary">
+              VIP Member
+            </Typography>
+          )}
         </Stack>
       </Box>
 

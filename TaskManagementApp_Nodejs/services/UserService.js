@@ -33,6 +33,7 @@ class UserService {
   }
 
   async updateUser(userId, userData) {
+    console.log(userId);
     const userRef = this.collection.doc(userId);
     await userRef.update(userData);
     const updatedUser = await this.getUserById(userId);

@@ -52,6 +52,7 @@ const Login = () => {
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (!userDoc.exists()) {
         await setDoc(doc(db, "users", user.uid), {
+          userId: user.uid,
           email: user.email,
           userType: "normal",
           createdAt: new Date(),
