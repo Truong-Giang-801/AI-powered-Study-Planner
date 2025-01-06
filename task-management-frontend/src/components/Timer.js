@@ -15,14 +15,6 @@ const Timer = ({ duration, onComplete, isBreak = false }) => {
     onComplete(session);
   }, [elapsedTime, onComplete]);
 
-  const handleCancel = useCallback(() => {
-    const session = {
-      date: new Date().toISOString(),
-      duration: elapsedTime
-    };
-    onComplete(session);
-  }, [elapsedTime, onComplete]);
-
   useEffect(() => {
     let interval;
     if (isActive && timeLeft > 0) {
@@ -88,7 +80,7 @@ const Timer = ({ duration, onComplete, isBreak = false }) => {
         <Button 
           variant="outlined" 
           color="error" 
-          onClick={handleCancel}
+          onClick={handleComplete}
         >
           End Session
         </Button>
