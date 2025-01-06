@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { auth } from "../firebase";
-import { updateProfile, updatePassword } from "firebase/auth";
+import { updateProfile, updatePassword, linkWithPopup, unlink } from "firebase/auth";
+import { GoogleAuthProvider } from "firebase/auth";
 import { UserContext } from "../context/UserContext";
 import axios from "axios";
 import {
@@ -26,6 +27,7 @@ const Profile = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editField, setEditField] = useState("");
   const [isVIP, setIsVIP] = useState(false);
+  const [isGoogleLinked, setIsGoogleLinked] = useState(false);
 
   // Populate user data
   useEffect(() => {
@@ -37,6 +39,7 @@ const Profile = () => {
           setFullName(user.displayName || "");
           setProfilePicture(user.photoURL || "");
           setIsVIP(userData.userType === 'VIP');
+          setIsGoogleLinked(user.providerData.some(provider => provider.providerId === 'google.com'));
         } catch (error) {
           console.error("Error fetching user data:", error);
           alert("Failed to fetch user data");
@@ -84,6 +87,29 @@ const Profile = () => {
     } catch (error) {
       console.error('Error upgrading to VIP:', error);
       alert('Failed to upgrade to VIP');
+    }
+  };
+
+  const handleLinkGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await linkWithPopup(auth.currentUser, provider);
+      setIsGoogleLinked(true);
+      alert('Google account linked successfully!');
+    } catch (error) {
+      console.error('Error linking Google account:', error);
+      alert('Failed to link Google account');
+    }
+  };
+
+  const handleUnlinkGoogle = async () => {
+    try {
+      await unlink(auth.currentUser, 'google.com');
+      setIsGoogleLinked(false);
+      alert('Google account unlinked successfully!');
+    } catch (error) {
+      console.error('Error unlinking Google account:', error);
+      alert('Failed to unlink Google account');
     }
   };
 
@@ -154,6 +180,23 @@ const Profile = () => {
             <Typography variant="subtitle1" color="secondary">
               VIP Member
             </Typography>
+          )}
+          {!isGoogleLinked ? (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleLinkGoogle}
+            >
+              Link Google Account
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleUnlinkGoogle}
+            >
+              Unlink Google Account
+            </Button>
           )}
         </Stack>
       </Box>

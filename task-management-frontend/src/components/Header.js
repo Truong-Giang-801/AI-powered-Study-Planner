@@ -27,8 +27,6 @@ const Header = () => {
                         <Button color="inherit" component={Link} to="/dashboard">Dashboard</Button>
                         <Button color="inherit" component={Link} to="/tasks">Tasks</Button>
                         <Button color="inherit" component={Link} to="/calendar">Calendar</Button>
-                        <Button color="inherit" component={Link} to="/link-google">Link Google Account</Button>
-                        <Button color="inherit" component={Link} to="/unlink-google">Unlink Google Account</Button>
                         <Button color="inherit" component={Link} to="/profile">Profile</Button>
                     </Box>
 
